@@ -38,7 +38,4 @@ wheels/
 !package.json
 !package-lock.json
 
-# Отчёты Excel
-*.xlsx
-*.xls
 
