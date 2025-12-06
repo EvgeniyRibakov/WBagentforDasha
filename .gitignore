@@ -38,4 +38,9 @@ wheels/
 !package.json
 !package-lock.json
 
+# Excel отчёты (кроме шаблона)
+*.xlsx
+!example_parse.xlsx
+
+
 

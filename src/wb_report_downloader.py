@@ -5,11 +5,17 @@
 """
 
 import sys
+import io
 from datetime import datetime, timedelta
 from pathlib import Path
 from wb_sales_parser import WBSalesParser
 import os
 from dotenv import load_dotenv
+
+# Устанавливаем UTF-8 для вывода в Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 # Загружаем переменные из .env файла (на уровень выше, в корне проекта)
 env_path = Path(__file__).parent.parent / ".env"
@@ -98,9 +104,11 @@ def download_yesterday_report_all_cabinets():
     print(f"📁 Папка для сохранения: {data_folder}\n")
     
     # Обрабатываем каждый кабинет по очереди
-    for cabinet_name, api_token in cabinets.items():
+    import time
+    
+    for idx, (cabinet_name, api_token) in enumerate(cabinets.items(), 1):
         print(f"{'='*60}")
-        print(f"Обработка кабинета: {cabinet_name}")
+        print(f"Обработка кабинета: {cabinet_name} ({idx}/{len(cabinets)})")
         print(f"{'='*60}")
         
         # Проверяем токен
@@ -124,12 +132,17 @@ def download_yesterday_report_all_cabinets():
             )
             
             if not success:
-                print(f"❌ Ошибка при скачивании отчёта для кабинета '{cabinet_name}'")
-                print("Остановка выполнения. Исправьте ошибку и запустите снова.")
-                return False
+                print(f"⚠ Не удалось скачать отчёт для кабинета '{cabinet_name}'")
+                print("Продолжаем обработку следующих кабинетов...")
+                continue
             
             filepath = Path(data_folder) / filename
             print(f"✓ Отчёт для кабинета '{cabinet_name}' успешно сохранён: {filepath}\n")
+            
+            # Добавляем задержку между кабинетами, чтобы избежать ошибки 429
+            if idx < len(cabinets):
+                print("⏳ Задержка 3 секунды перед следующим кабинетом...\n")
+                time.sleep(3)
             
         except Exception as e:
             print(f"❌ Критическая ошибка при обработке кабинета '{cabinet_name}': {e}")
