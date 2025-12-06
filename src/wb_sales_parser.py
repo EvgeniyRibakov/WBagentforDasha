@@ -225,15 +225,30 @@ class WBSalesParser:
             params = {
                 "startDate": date_from,
                 "endDate": date_to,
-                "groupBy": "nmId",  # Группировка по артикулам WB
+                "groupBy": "nmId",  # Группировка по артикулам WB (может быть: nmId, subject, brand, tag)
                 "timezone": "Europe/Moscow"
             }
         elif report_type == "STOCK_HISTORY_REPORT_CSV":
             # История остатков - может содержать нужные поля
+            # Обязательные параметры согласно API документации
+            # Пробуем разные варианты значений для stockType и orderBy.field
+            # Варианты для stockType: возможно "FREE", "RESERVE", "ALL" или числа
+            # Варианты для orderBy.field: возможно "NM_ID", "nm_id", "nmID" или другие поля
             params = {
                 "startDate": date_from,
                 "endDate": date_to,
-                "timezone": "Europe/Moscow"
+                "timezone": "Europe/Moscow",
+                "currentPeriod": {
+                    "start": date_from,
+                    "end": date_to
+                },
+                "stockType": "FREE",  # Попробуем строку "FREE" вместо "ALL"
+                "skipDeletedNm": False,
+                "availabilityFilters": [],
+                "orderBy": {
+                    "field": "NM_ID",  # Попробуем "NM_ID" в верхнем регистре
+                    "mode": "asc"
+                }
             }
         else:
             # Для других типов отчётов параметры могут отличаться
@@ -250,7 +265,10 @@ class WBSalesParser:
         }
         
         try:
-            print(f"Создание задания на генерацию отчёта (ID: {report_id})...")
+            print(f"📤 Создание задания на генерацию отчёта...")
+            print(f"  Тип отчёта: {report_type}")
+            print(f"  Период: {date_from} - {date_to}")
+            print(f"  URL: {self.REPORT_CREATE_URL}")
             response = requests.post(
                 self.REPORT_CREATE_URL,
                 headers=self.analytics_headers,
@@ -258,13 +276,14 @@ class WBSalesParser:
                 timeout=60
             )
             
-            print(f"Ответ сервера: HTTP {response.status_code}")
+            print(f"📥 Ответ сервера: HTTP {response.status_code}")
             if response.status_code == 200 or response.status_code == 201:
                 try:
                     data = response.json()
-                    print(f"Ответ JSON: {json.dumps(data, ensure_ascii=False)[:200]}")
+                    print(f"  Ответ JSON: {json.dumps(data, ensure_ascii=False, indent=2)[:300]}")
                     download_id = data.get("downloadId") or data.get("id") or report_id
-                    print(f"✓ Задание создано, downloadId: {download_id}")
+                    print(f"✓ Задание создано успешно")
+                    print(f"  downloadId: {download_id}")
                     return {
                         "success": True,
                         "downloadId": download_id,
@@ -655,6 +674,31 @@ class WBSalesParser:
             # Создаём DataFrame из данных
             df = pd.DataFrame(data)
             
+            # Сортируем по Номенклатуре (если ещё не отсортировано)
+            # Сначала по Номенклатуре, затем по Складу, затем по Размеру
+            if "Номенклатура" in df.columns:
+                # Преобразуем Номенклатуру в числовой формат для правильной сортировки
+                df["_sort_nomenclature"] = pd.to_numeric(df["Номенклатура"], errors='coerce').fillna(0)
+                df = df.sort_values(by=["_sort_nomenclature", "Склад", "Размер"], na_position='last')
+                df = df.drop(columns=["_sort_nomenclature"])
+            
+            # Исправляем типы данных для соответствия реальному отчёту
+            # Наименование должно быть object (строка), а не float64
+            if "Наименование" in df.columns:
+                df["Наименование"] = df["Наименование"].astype(str).replace('nan', '').replace('None', '')
+                # Пустые строки заменяем на NaN для правильного отображения
+                df["Наименование"] = df["Наименование"].replace('', pd.NA)
+            
+            # Баркод должен быть int64, а не float64
+            if "Баркод" in df.columns:
+                # Преобразуем в числовой формат, пустые значения оставляем как NaN
+                df["Баркод"] = pd.to_numeric(df["Баркод"], errors='coerce')
+            
+            # Денежные поля должны быть float64
+            for col in ["Заказано себестоимость", "Выкупили руб"]:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+            
             # Определяем полный путь к файлу
             if data_folder:
                 # Создаём папку если её нет
@@ -714,7 +758,16 @@ class WBSalesParser:
         Returns:
             Словарь с данными о товарах (nmId -> информация о товаре)
         """
-        url = "https://suppliers-api.wildberries.ru/content/v1/cards/cursor/list"
+        # Пробуем разные варианты URL для карточек товаров
+        # Вариант 1: content-api (может быть неправильный)
+        # Вариант 2: suppliers-api (старый)
+        # Вариант 3: statistics-api (может быть правильный)
+        # Пробуем разные варианты URL для карточек товаров
+        # suppliers-api.wildberries.ru не резолвится, используем content-api
+        urls_to_try = [
+            "https://content-api.wildberries.ru/content/v1/cards/cursor/list",  # Основной API для карточек
+            "https://statistics-api.wildberries.ru/api/v1/supplier/cards/list"  # Альтернативный
+        ]
         
         # Для получения всех карточек используем cursor-based pagination
         all_cards = []
@@ -724,49 +777,89 @@ class WBSalesParser:
         try:
             print(f"📦 Получение информации о товарах из /api/v1/supplier/cards...")
             
-            while True:
-                request_body = {
-                    "sort": {
-                        "cursor": {
-                            "limit": 1000
-                        },
-                        "filter": {
-                            "withPhoto": -1
+            # Пробуем разные URL для карточек
+            url_worked = False
+            for url in urls_to_try:
+                try:
+                    cursor = None
+                    cursor_nm_id = None
+                    url_cards = []
+                    
+                    while True:
+                        request_body = {
+                            "sort": {
+                                "cursor": {
+                                    "limit": 1000
+                                },
+                                "filter": {
+                                    "withPhoto": -1
+                                }
+                            }
                         }
-                    }
-                }
-                
-                if cursor and cursor_nm_id is not None:
-                    request_body["sort"]["cursor"]["updatedAt"] = cursor
-                    request_body["sort"]["cursor"]["nmID"] = cursor_nm_id
-                
-                response = requests.post(url, headers=self.headers, json=request_body, timeout=60)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    cards = data.get("data", {}).get("cards", [])
-                    if not cards:
+                        
+                        if cursor and cursor_nm_id is not None:
+                            request_body["sort"]["cursor"]["updatedAt"] = cursor
+                            request_body["sort"]["cursor"]["nmID"] = cursor_nm_id
+                        
+                        # Пробуем разные варианты заголовков
+                        content_headers = {
+                            "Authorization": f"Bearer {self.api_token}",
+                            "Content-Type": "application/json"
+                        }
+                        response = requests.post(url, headers=content_headers, json=request_body, timeout=60)
+                        
+                        # Если 401, пробуем с другим заголовком
+                        if response.status_code == 401:
+                            content_headers_alt = {
+                                "HeaderApiKey": self.api_token,
+                                "Content-Type": "application/json"
+                            }
+                            response = requests.post(url, headers=content_headers_alt, json=request_body, timeout=60)
+                        
+                        # Если 404, пробуем следующий URL
+                        if response.status_code == 404:
+                            break
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            cards = data.get("data", {}).get("cards", [])
+                            if not cards:
+                                break
+                            
+                            url_cards.extend(cards)
+                            
+                            # Проверяем есть ли ещё данные
+                            cursor_data = data.get("data", {}).get("cursor", {})
+                            if not cursor_data or not cursor_data.get("updatedAt"):
+                                break
+                            
+                            cursor = cursor_data.get("updatedAt")
+                            cursor_nm_id = cursor_data.get("nmID", 0)
+                            print(f"  Загружено {len(url_cards)} карточек...")
+                        else:
+                            print(f"⚠ HTTP {response.status_code} при получении карточек: {response.text[:200]}")
+                            break
+                    
+                    # Если успешно получили данные, сохраняем и выходим
+                    if url_cards:
+                        all_cards = url_cards
+                        url_worked = True
                         break
-                    
-                    all_cards.extend(cards)
-                    
-                    # Проверяем есть ли ещё данные
-                    cursor_data = data.get("data", {}).get("cursor", {})
-                    if not cursor_data or not cursor_data.get("updatedAt"):
-                        break
-                    
-                    cursor = cursor_data.get("updatedAt")
-                    cursor_nm_id = cursor_data.get("nmID", 0)
-                    print(f"  Загружено {len(all_cards)} карточек...")
-                else:
-                    print(f"⚠ HTTP {response.status_code} при получении карточек: {response.text[:200]}")
-                    break
+                except Exception as e:
+                    print(f"⚠ Ошибка при запросе к {url}: {e}")
+                    continue
             
-            # Создаём словарь nmId -> карточка
+            # Если ни один URL не сработал, продолжаем без карточек
+            if not url_worked:
+                print("⚠ Не удалось получить карточки ни с одного URL")
+            
+            # Создаём словарь nmId -> карточка (нормализуем nmId)
             cards_dict = {}
             for card in all_cards:
-                nm_id = card.get("nmID")
+                # Пробуем разные варианты названий полей для nmId
+                nm_id = card.get("nmID") or card.get("nmId") or card.get("nm_id") or card.get("nomenclature") or card.get("Номенклатура")
                 if nm_id:
+                    nm_id = str(nm_id).strip()
                     cards_dict[nm_id] = card
             
             print(f"✓ Получено {len(cards_dict)} карточек товаров")
@@ -829,16 +922,45 @@ class WBSalesParser:
         # Группируем продажи по nmId, складу и размеру
         sales_by_key = {}  # (nmId, warehouse, size) -> {ordered: 0, buyouts: 0, ordered_cost: 0, buyouts_sum: 0}
         
+        # Создаём словарь для хранения информации о товарах из продаж (может содержать дополнительные поля)
+        sales_product_info = {}  # nmId -> {brand, subject, name, supplierArticle, ...}
+        
         for sale in sales_data:
-            nm_id = sale.get("nmId") or sale.get("nm_id")
+            # Нормализуем nmId - пробуем разные варианты названий полей
+            nm_id = sale.get("nmId") or sale.get("nm_id") or sale.get("nmID") or sale.get("nomenclature") or sale.get("Номенклатура")
+            if nm_id:
+                nm_id = str(nm_id).strip()
+            else:
+                continue  # Пропускаем записи без nmId
+            
+            # Сохраняем информацию о товаре из продаж (может содержать бренд, предмет и т.д.)
+            if nm_id not in sales_product_info:
+                sales_product_info[nm_id] = {
+                    "brand": sale.get("brand", "") or sale.get("Бренд", ""),
+                    "subject": sale.get("subject", "") or sale.get("Предмет", "") or sale.get("category", ""),
+                    "name": sale.get("imtName", "") or sale.get("imt_name", "") or sale.get("Наименование", "") or sale.get("title", ""),
+                    "supplierArticle": sale.get("supplierArticle", "") or sale.get("supplier_article", "") or sale.get("Артикул поставщика", ""),
+                    "season": sale.get("season", "") or sale.get("Сезон", ""),
+                    "collection": sale.get("collection", "") or sale.get("Коллекция", "")
+                }
+            
             # В /api/v1/supplier/sales может не быть warehouseName и techSize
             # Используем пустые строки если нет
-            warehouse = sale.get("warehouseName", "") or sale.get("warehouse_name", "")
-            size = sale.get("techSize", "") or sale.get("tech_size", "") or sale.get("size", "")
-            quantity = sale.get("quantity", 0)
-            total_price = sale.get("totalPrice", 0) or sale.get("total_price", 0)
+            warehouse = sale.get("warehouseName", "") or sale.get("warehouse_name", "") or sale.get("warehouse", "") or sale.get("Склад", "")
+            size = sale.get("techSize", "") or sale.get("tech_size", "") or sale.get("size", "") or sale.get("Размер", "")
+            if size:
+                size = str(size).strip()
+            
+            quantity = sale.get("quantity", 0) or sale.get("qty", 0) or sale.get("Заказано шт", 0)
+            if not isinstance(quantity, (int, float)):
+                quantity = 0
+            
+            total_price = sale.get("totalPrice", 0) or sale.get("total_price", 0) or sale.get("price", 0) or sale.get("Заказано себестоимость", 0)
+            if not isinstance(total_price, (int, float)):
+                total_price = 0
+            
             # В /api/v1/supplier/sales может не быть isRealization, используем другие поля
-            is_realization = sale.get("isRealization", False) or sale.get("is_realization", False)
+            is_realization = sale.get("isRealization", False) or sale.get("is_realization", False) or sale.get("isRealization", False)
             # Если нет явного флага, считаем что все продажи - это выкупы
             if not any(key in sale for key in ["isRealization", "is_realization"]):
                 is_realization = True
@@ -866,23 +988,39 @@ class WBSalesParser:
         stocks_by_key = {}  # (nmId, warehouse, size) -> quantity
         
         for stock in stocks_data:
-            nm_id = stock.get("nmId")
+            # Нормализуем nmId - пробуем разные варианты названий полей
+            nm_id = stock.get("nmId") or stock.get("nm_id") or stock.get("nmID") or stock.get("nomenclature") or stock.get("Номенклатура")
+            if nm_id:
+                nm_id = str(nm_id).strip()
+            else:
+                continue  # Пропускаем записи без nmId
             
             # Остатки могут быть в массиве warehouses
             warehouses = stock.get("warehouses", [])
             if warehouses:
                 for wh in warehouses:
-                    warehouse = wh.get("warehouseName", "")
-                    quantity = wh.get("quantity", 0)
-                    size = stock.get("techSize", "")
+                    warehouse = wh.get("warehouseName", "") or wh.get("warehouse_name", "") or wh.get("warehouse", "") or wh.get("Склад", "")
+                    quantity = wh.get("quantity", 0) or wh.get("qty", 0) or wh.get("Текущий остаток", 0)
+                    if not isinstance(quantity, (int, float)):
+                        quantity = 0
+                    # Размер может быть в stock или в wh
+                    size = stock.get("techSize", "") or stock.get("tech_size", "") or stock.get("size", "") or stock.get("Размер", "")
+                    if not size:
+                        size = wh.get("techSize", "") or wh.get("tech_size", "") or wh.get("size", "") or wh.get("Размер", "")
+                    if size:
+                        size = str(size).strip()
                     
                     key = (nm_id, warehouse, size)
                     stocks_by_key[key] = stocks_by_key.get(key, 0) + quantity
             else:
                 # Старый формат - остатки напрямую в объекте
-                warehouse = stock.get("warehouseName", "")
-                size = stock.get("techSize", "")
-                quantity = stock.get("quantity", 0)
+                warehouse = stock.get("warehouseName", "") or stock.get("warehouse_name", "") or stock.get("warehouse", "") or stock.get("Склад", "")
+                size = stock.get("techSize", "") or stock.get("tech_size", "") or stock.get("size", "") or stock.get("Размер", "")
+                if size:
+                    size = str(size).strip()
+                quantity = stock.get("quantity", 0) or stock.get("qty", 0) or stock.get("Текущий остаток", 0)
+                if not isinstance(quantity, (int, float)):
+                    quantity = 0
                 
                 key = (nm_id, warehouse, size)
                 stocks_by_key[key] = stocks_by_key.get(key, 0) + quantity
@@ -894,36 +1032,74 @@ class WBSalesParser:
         report_rows = []
         
         for (nm_id, warehouse, size) in all_keys:
+            # Нормализуем nmId для поиска карточки
+            nm_id_str = str(nm_id).strip() if nm_id else ""
+            
             sales_info = sales_by_key.get((nm_id, warehouse, size), {
                 "ordered": 0,
                 "buyouts": 0,
                 "ordered_cost": 0.0,
                 "buyouts_sum": 0.0
             })
-            # Получаем информацию о товаре
-            card = product_cards.get(nm_id, {})
+            # Получаем информацию о товаре - пробуем разные варианты ключей
+            card = product_cards.get(nm_id_str, {}) or product_cards.get(str(nm_id), {}) or product_cards.get(int(nm_id) if nm_id_str and nm_id_str.isdigit() else nm_id_str, {})
             
-            # Извлекаем данные из карточки
+            # Если карточки нет, пробуем взять данные из продаж
+            if not card and nm_id_str in sales_product_info:
+                # Используем данные из продаж как fallback
+                sales_info_data = sales_product_info[nm_id_str]
+                card = {
+                    "brand": sales_info_data.get("brand", ""),
+                    "subject": sales_info_data.get("subject", ""),
+                    "season": sales_info_data.get("season", ""),
+                    "collection": sales_info_data.get("collection", ""),
+                    "imtName": sales_info_data.get("name", ""),
+                    "supplierArticle": sales_info_data.get("supplierArticle", "")
+                }
+            
+            # Извлекаем данные из карточки (если есть)
             # Пробуем разные варианты названий полей
-            brand = card.get("brand", "") or card.get("Бренд", "")
-            subject = card.get("subject", "") or card.get("Предмет", "") or card.get("category", "")
-            season = card.get("season", "") or card.get("Сезон", "")
-            collection = card.get("collection", "") or card.get("Коллекция", "")
-            name = card.get("imtName", "") or card.get("imt_name", "") or card.get("Наименование", "") or card.get("title", "")
-            supplier_article = card.get("supplierArticle", "") or card.get("supplier_article", "") or card.get("Артикул поставщика", "")
-            barcode = ""
+            if card:
+                brand = card.get("brand", "") or card.get("Бренд", "")
+                subject = card.get("subject", "") or card.get("Предмет", "") or card.get("category", "")
+                season = card.get("season", "") or card.get("Сезон", "")
+                collection = card.get("collection", "") or card.get("Коллекция", "")
+                name = card.get("imtName", "") or card.get("imt_name", "") or card.get("Наименование", "") or card.get("title", "")
+                supplier_article = card.get("supplierArticle", "") or card.get("supplier_article", "") or card.get("Артикул поставщика", "")
+                barcode = ""
+                
+                # Ищем баркод для данного размера
+                sizes = card.get("sizes", []) or card.get("Размеры", [])
+                for size_info in sizes:
+                    if isinstance(size_info, dict):
+                        tech_size = size_info.get("techSize") or size_info.get("tech_size") or size_info.get("Размер", "")
+                        if tech_size == size or str(tech_size) == str(size):
+                            barcode = size_info.get("barcode", "") or size_info.get("Баркод", "")
+                            break
+            else:
+                # Если карточки нет, используем пустые значения
+                brand = ""
+                subject = ""
+                season = ""
+                collection = ""
+                name = ""
+                supplier_article = ""
+                barcode = ""
             
-            # Ищем баркод для данного размера
-            sizes = card.get("sizes", []) or card.get("Размеры", [])
-            for size_info in sizes:
-                if isinstance(size_info, dict):
-                    tech_size = size_info.get("techSize") or size_info.get("tech_size") or size_info.get("Размер", "")
-                    if tech_size == size or str(tech_size) == str(size):
-                        barcode = size_info.get("barcode", "") or size_info.get("Баркод", "")
-                        break
-            
-            # Получаем остаток
+            # Получаем остаток - пробуем разные варианты ключей для сопоставления
             stock_quantity = stocks_by_key.get((nm_id, warehouse, size), 0)
+            # Если не нашли по точному совпадению, пробуем без размера или без склада
+            if stock_quantity == 0:
+                # Пробуем найти остаток без размера
+                stock_quantity = stocks_by_key.get((nm_id, warehouse, ""), 0)
+            if stock_quantity == 0:
+                # Пробуем найти остаток без склада
+                stock_quantity = stocks_by_key.get((nm_id, "", size), 0)
+            if stock_quantity == 0:
+                # Пробуем найти остаток только по nmId (суммируем все остатки для этого товара)
+                for (s_nm_id, s_warehouse, s_size), s_qty in stocks_by_key.items():
+                    if str(s_nm_id) == str(nm_id):
+                        stock_quantity += s_qty
             
             # Создаём строку отчёта
             row = {
@@ -933,21 +1109,30 @@ class WBSalesParser:
                 "Коллекция": collection,
                 "Наименование": name,
                 "Артикул поставщика": supplier_article,
-                "Номенклатура": nm_id,
-                "Баркод": barcode,
-                "Размер": size,
+                "Номенклатура": nm_id_str if nm_id_str else "",
+                "Баркод": barcode if barcode else "",
+                "Размер": size if size else "",
                 "Контракт": "",  # Не доступно через API
-                "Склад": warehouse,
-                "Заказано шт": sales_info["ordered"],
-                "Заказано себестоимость": sales_info["ordered_cost"],
-                "Выкупили шт": sales_info["buyouts"],
-                "Выкупили руб": sales_info["buyouts_sum"],
-                "Текущий остаток": stock_quantity
+                "Склад": warehouse if warehouse else "",
+                "Заказано шт": int(sales_info["ordered"]) if sales_info.get("ordered") else 0,
+                "Заказано себестоимость": float(sales_info["ordered_cost"]) if sales_info.get("ordered_cost") else 0.0,
+                "Выкупили шт": int(sales_info["buyouts"]) if sales_info.get("buyouts") else 0,
+                "Выкупили руб": float(sales_info["buyouts_sum"]) if sales_info.get("buyouts_sum") else 0.0,
+                "Текущий остаток": int(stock_quantity) if stock_quantity else 0
             }
             
             report_rows.append(row)
         
+        # Сортируем по Номенклатуре (как в реальном отчёте - строки с одинаковой Номенклатурой должны быть рядом)
+        # Сначала по Номенклатуре, затем по Складу, затем по Размеру для группировки
+        report_rows.sort(key=lambda x: (
+            int(x.get("Номенклатура", 0)) if str(x.get("Номенклатура", "")).isdigit() else 0,
+            x.get("Склад", ""),
+            int(x.get("Размер", 0)) if str(x.get("Размер", "")).isdigit() else 0
+        ))
+        
         print(f"✓ Собрано {len(report_rows)} строк отчёта")
+        print(f"✓ Отсортировано по Номенклатуре (строки с одинаковой Номенклатурой сгруппированы)")
         return report_rows
     
     def download_report_to_excel(
@@ -973,63 +1158,17 @@ class WBSalesParser:
         """
         print(f"Получение отчёта за период {date_from} - {date_to}...")
         
-        # Сначала пробуем собрать данные из разных эндпоинтов
-        print("🔧 Пробуем собрать данные из разных эндпоинтов...")
-        try:
-            # 1. Получаем данные о продажах
-            sales_result = self.get_sales_data(date_from, date_to)
-            if not sales_result.get("success") or not sales_result.get("data"):
-                print("⚠ Не удалось получить данные о продажах, пробуем другие методы...")
-                raise Exception("Нет данных о продажах")
-            
-            sales_data = sales_result.get("data", [])
-            if not sales_data:
-                print("⚠ Нет данных о продажах за указанный период")
-                raise Exception("Нет данных о продажах")
-            
-            # 2. Получаем информацию о товарах
-            cards_result = self.get_product_cards()
-            if not cards_result.get("success"):
-                print("⚠ Не удалось получить информацию о товарах, пробуем другие методы...")
-                raise Exception("Нет данных о товарах")
-            
-            product_cards = cards_result.get("data", {})
-            
-            # 3. Получаем данные об остатках
-            stocks_result = self.get_stocks_data()
-            stocks_data = stocks_result.get("data", []) if stocks_result.get("success") else []
-            
-            # 4. Объединяем данные
-            combined_report = self.build_combined_report(
-                date_from=date_from,
-                date_to=date_to,
-                sales_data=sales_data,
-                product_cards=product_cards,
-                stocks_data=stocks_data
-            )
-            
-            if combined_report:
-                # Сохраняем в Excel
-                if not filename:
-                    filename = f"wb_report_{date_from}_to_{date_to}.xlsx"
-                
-                self.save_to_excel(combined_report, filename=filename, data_folder=data_folder)
-                print(f"✓ Отчёт успешно собран из разных эндпоинтов и сохранён")
-                return True
-            else:
-                print("⚠ Не удалось собрать отчёт из разных эндпоинтов")
-                raise Exception("Не удалось собрать отчёт")
-                
-        except Exception as e:
-            print(f"⚠ Ошибка при сборе данных из разных эндпоинтов: {e}")
-            print("Пробуем другие методы...")
-        
-        # Сначала пробуем получить отчёт через новый API (seller-analytics-api)
+        # ПРИОРИТЕТ 1: Пробуем получить отчёт через новый API (seller-analytics-api)
+        # Это основной метод получения детализированных отчётов
         # Пробуем разные типы отчётов
         if use_detailed_api:
+            print("📊 ПРИОРИТЕТ 1: Пробуем получить отчёт через /api/v2/nm-report/downloads...")
+            # Временно отключаем STOCK_HISTORY_REPORT_CSV из-за проблем с параметрами
+            # Пробуем только DETAIL_HISTORY_REPORT (может не дать нужную структуру, но попробуем)
+            # Временно отключаем STOCK_HISTORY_REPORT_CSV из-за проблем с параметрами (stockType и orderBy.field)
+            # Пробуем только DETAIL_HISTORY_REPORT (может не дать нужную структуру, но попробуем)
             report_types_to_try = [
-                "STOCK_HISTORY_REPORT_CSV",  # История остатков - может содержать нужные поля
-                "DETAIL_HISTORY_REPORT",  # Воронка продаж (не подходит, но пробуем)
+                "DETAIL_HISTORY_REPORT"  # Временно убрали STOCK_HISTORY_REPORT_CSV
             ]
             
             for report_type in report_types_to_try:
@@ -1040,14 +1179,32 @@ class WBSalesParser:
                         print(f"✓ Отчёт типа '{report_type}' успешно создан")
                         download_id = create_result.get("downloadId")
                         if download_id:
-                            # Ждём немного, чтобы отчёт успел сгенерироваться
+                            # Ждём генерацию отчёта с retry логикой
                             import time
-                            print("⏳ Ожидание генерации отчёта (5 секунд)...")
-                            time.sleep(5)
+                            max_wait_time = 60  # Максимальное время ожидания (секунды)
+                            wait_interval = 3   # Интервал между проверками (секунды)
+                            max_retries = max_wait_time // wait_interval  # Максимальное количество попыток
                             
-                            # Получаем отчёт
-                            report_result = self.get_analytics_report_file(download_id)
-                            if report_result.get("success"):
+                            print(f"⏳ Ожидание генерации отчёта (максимум {max_wait_time} секунд, {max_retries} попыток)...")
+                            time.sleep(5)  # Первоначальная задержка
+                            
+                            # Получаем отчёт с retry логикой
+                            report_result = None
+                            retry_count = 0
+                            while retry_count < max_retries:
+                                report_result = self.get_analytics_report_file(download_id)
+                                if report_result.get("success"):
+                                    break
+                                elif report_result.get("status_code") == 404:
+                                    # Отчёт ещё не готов, ждём
+                                    retry_count += 1
+                                    print(f"  Отчёт ещё не готов (попытка {retry_count}/{max_retries}), ждём ещё {wait_interval} секунд...")
+                                    time.sleep(wait_interval)
+                                else:
+                                    # Другая ошибка, прекращаем ожидание
+                                    break
+                            
+                            if report_result and report_result.get("success"):
                                 zip_data = report_result.get("data")
                                 if zip_data and report_result.get("format") == "zip":
                                     # Распаковываем ZIP и конвертируем CSV в Excel
@@ -1075,7 +1232,18 @@ class WBSalesParser:
                                                 else:
                                                     filepath = Path(filename)
                                                 
-                                                # Проверяем структуру данных
+                                                # Проверяем структуру данных по example_parse.xlsx
+                                                # Целевые колонки: Бренд, Предмет, Сезон, Коллекция, Наименование,
+                                                # Артикул поставщика, Номенклатура, Баркод, Размер, Контракт, Склад,
+                                                # Заказано шт, Заказано себестоимость, Выкупили шт, Выкупили руб, Текущий остаток
+                                                
+                                                # Проверяем наличие ключевых полей (могут быть на русском или английском)
+                                                has_brand = any(col in df.columns for col in ['Бренд', 'brand', 'Brand'])
+                                                has_subject = any(col in df.columns for col in ['Предмет', 'subject', 'Subject'])
+                                                has_warehouse = any(col in df.columns for col in ['Склад', 'warehouseName', 'warehouse', 'Warehouse'])
+                                                has_supplier_article = any(col in df.columns for col in ['Артикул поставщика', 'supplierArticle', 'supplier_article'])
+                                                has_nomenclature = any(col in df.columns for col in ['Номенклатура', 'nmId', 'nm_id', 'nomenclature'])
+                                                
                                                 # Если это воронка продаж (неправильная структура), пробуем следующий тип отчёта
                                                 if 'dt' in df.columns and 'openCardCount' in df.columns:
                                                     print("⚠ Получен отчёт воронки продаж, а не детализация продаж")
@@ -1083,24 +1251,26 @@ class WBSalesParser:
                                                     print(f"  Текущие колонки: {', '.join(df.columns.tolist()[:5])}...")
                                                     print("  Нужны колонки: Бренд, Предмет, Сезон, Коллекция, Наименование, Артикул поставщика...")
                                                     print("  Пробуем следующий тип отчёта...")
-                                                    # Выходим из вложенных блоков, чтобы перейти к следующему типу отчёта
                                                     raise StopIteration("Пробуем следующий тип отчёта")
-                                                elif 'brand' in df.columns or 'subject' in df.columns or 'supplierArticle' in df.columns or 'warehouseName' in df.columns:
-                                                    # Правильная структура - сохраняем
+                                                elif has_brand or has_subject or has_warehouse or has_supplier_article or has_nomenclature:
+                                                    # Есть нужные поля - сохраняем
+                                                    # Приводим названия колонок к нужному формату (если нужно)
                                                     df.to_excel(filepath, index=False, engine='openpyxl')
                                                     print(f"✓ Отчёт сохранён в Excel файл: {filepath}")
                                                     print(f"  Тип отчёта: {report_type}")
                                                     print(f"  Всего строк: {len(df)}")
-                                                    print(f"  Колонки: {', '.join(df.columns.tolist()[:10])}...")
+                                                    print(f"  Колонки ({len(df.columns)}): {', '.join(df.columns.tolist()[:15])}...")
+                                                    print(f"  ✓ Найдены ключевые поля: Бренд={has_brand}, Предмет={has_subject}, Склад={has_warehouse}, Артикул={has_supplier_article}")
                                                     return True
                                                 else:
                                                     # Неизвестная структура - сохраняем для проверки
                                                     print(f"⚠ Неизвестная структура данных")
                                                     print(f"  Тип отчёта: {report_type}")
-                                                    print(f"  Колонки: {', '.join(df.columns.tolist())}")
+                                                    print(f"  Колонки ({len(df.columns)}): {', '.join(df.columns.tolist())}")
                                                     df.to_excel(filepath, index=False, engine='openpyxl')
-                                                    print(f"✓ Отчёт сохранён в Excel файл: {filepath}")
+                                                    print(f"✓ Отчёт сохранён в Excel файл для проверки: {filepath}")
                                                     print(f"  Всего строк: {len(df)}")
+                                                    print("  ⚠ Структура не соответствует example_parse.xlsx, но файл сохранён для анализа")
                                                     return True
                                             else:
                                                 print("⚠ В ZIP архиве не найдено CSV файлов")
@@ -1135,121 +1305,74 @@ class WBSalesParser:
                     print(f"⚠ Неожиданная ошибка при обработке отчёта типа '{report_type}': {e}")
                     continue
             
-            print("⚠ Новый API не вернул правильную структуру данных")
-            print("Пробуем другие методы...")
+            print("⚠ Новый API /api/v2/nm-report/downloads не вернул правильную структуру данных")
+            print("Переходим к сбору данных по кусочкам...")
+        
+        # ПРИОРИТЕТ 2: Собираем данные по кусочкам из разных эндпоинтов
+        # (reportDetailByPeriod пропущен - не работает для ежедневных данных)
+        print("📊 ПРИОРИТЕТ 2: Собираем данные по кусочкам из разных эндпоинтов...")
+        try:
+            print("🔧 Собираем данные из разных API эндпоинтов...")
             
-            print("⚠ Новый API не вернул правильную структуру данных")
-            print("Пробуем другие методы...")
-        
-        # Пробуем получить отчёт через API reportDetailByPeriod (v1, v2, v5)
-        if use_detailed_api:
-            print("Пробуем получить отчёт через API reportDetailByPeriod (v1, v2, v5)...")
-            report_data = self.get_report_detail(date_from=date_from, date_to=date_to)
-            if report_data.get("success"):
-                # Если получены бинарные данные Excel
-                if report_data.get("format") == "xlsx" and isinstance(report_data.get("data"), bytes):
-                    excel_data = report_data.get("data")
-                    
-                    # Определяем полный путь к файлу
-                    if not filename:
-                        filename = f"wb_report_{date_from}_to_{date_to}.xlsx"
-                    
-                    if data_folder:
-                        Path(data_folder).mkdir(parents=True, exist_ok=True)
-                        filepath = Path(data_folder) / filename
-                    else:
-                        filepath = Path(filename)
-                    
-                    # Сохраняем бинарные данные напрямую в файл
-                    try:
-                        with open(filepath, 'wb') as f:
-                            f.write(excel_data)
-                        print(f"✓ Отчёт сохранён в Excel файл: {filepath}")
-                        print(f"  Размер файла: {len(excel_data)} байт")
-                        return True
-                    except Exception as e:
-                        print(f"❌ Ошибка при сохранении Excel файла: {e}")
-                        return False
-                else:
-                    # Если получены JSON данные, обрабатываем
-                    data = report_data.get("data", [])
-                    if isinstance(data, list) and data:
-                        print(f"✓ Получены данные через детализированный API reportDetailByPeriod ({len(data)} записей)")
-                        
-                        # Проверяем структуру данных
-                        first_item = data[0] if data else {}
-                        if isinstance(first_item, dict):
-                            # Проверяем наличие нужных полей
-                            has_brand = 'brand' in first_item
-                            has_subject = 'subject' in first_item
-                            has_warehouse = 'warehouseName' in first_item
-                            has_supplier_article = 'supplierArticle' in first_item
-                            
-                            if has_brand or has_subject or has_warehouse or has_supplier_article:
-                                print(f"✓ Структура данных соответствует требуемой")
-                                print(f"  Колонки: {', '.join(list(first_item.keys())[:10])}...")
-                                
-                                if not filename:
-                                    filename = f"wb_report_{date_from}_to_{date_to}.xlsx"
-                                self.save_to_excel(data, filename, data_folder=data_folder)
-                                return True
-                            else:
-                                print(f"⚠ Структура данных не соответствует требуемой")
-                                print(f"  Колонки: {', '.join(list(first_item.keys())[:10])}...")
-                                print("  Нужны: brand, subject, warehouseName, supplierArticle...")
-                        else:
-                            print(f"⚠ API вернул данные, но формат неожиданный: {type(data)}")
-        
-        # Убрано дублирование - уже пробовали выше
-            if report_data.get("success"):
-                data = report_data.get("data", [])
-                if isinstance(data, list):
-                    if len(data) > 0:
-                        print(f"✓ Получены данные через детализированный API reportDetailByPeriod ({len(data)} записей)")
-                        
-                        # Проверяем структуру данных
-                        first_item = data[0]
-                        if isinstance(first_item, dict):
-                            # Проверяем наличие нужных полей
-                            has_brand = 'brand' in first_item
-                            has_subject = 'subject' in first_item
-                            has_warehouse = 'warehouseName' in first_item
-                            has_supplier_article = 'supplierArticle' in first_item
-                            
-                            print(f"  Колонки: {', '.join(list(first_item.keys())[:15])}...")
-                            
-                            if has_brand or has_subject or has_warehouse or has_supplier_article:
-                                print(f"✓ Структура данных соответствует требуемой")
-                                if not filename:
-                                    filename = f"wb_report_{date_from}_to_{date_to}.xlsx"
-                                self.save_to_excel(data, filename, data_folder=data_folder)
-                                return True
-                            else:
-                                print(f"⚠ Структура данных не соответствует требуемой")
-                                print("  Нужны: brand, subject, warehouseName, supplierArticle...")
-                                # Но всё равно сохраняем, возможно данные правильные, просто названия полей другие
-                                print("  Сохраняем данные для проверки...")
-                                if not filename:
-                                    filename = f"wb_report_{date_from}_to_{date_to}.xlsx"
-                                self.save_to_excel(data, filename, data_folder=data_folder)
-                                return True
-                        else:
-                            print(f"⚠ Первый элемент не является словарём: {type(first_item)}")
-                    else:
-                        print(f"⚠ API вернул пустой список")
-                else:
-                    print(f"⚠ API вернул данные, но формат неожиданный: {type(data)}")
-                    if isinstance(data, dict):
-                        print(f"  Ключи в ответе: {list(data.keys())}")
+            # 1. Получаем данные о продажах
+            sales_result = self.get_sales_data(date_from, date_to)
+            if not sales_result.get("success") or not sales_result.get("data"):
+                print("⚠ Не удалось получить данные о продажах")
+                raise Exception("Нет данных о продажах")
+            
+            sales_data = sales_result.get("data", [])
+            if not sales_data:
+                print("⚠ Нет данных о продажах за указанный период")
+                raise Exception("Нет данных о продажах")
+            
+            # 2. Получаем информацию о товарах (пробуем, но не критично)
+            product_cards = {}
+            try:
+                cards_result = self.get_product_cards()
+                if cards_result.get("success"):
+                    product_cards = cards_result.get("data", {})
+            except Exception as e:
+                print(f"⚠ Не удалось получить информацию о товарах: {e}")
+            
+            if not product_cards:
+                print("⚠ Карточки товаров недоступны, продолжаем без них")
+                print("  Отчёт будет создан с данными из продаж и остатков (без бренда, предмета и т.д.)")
+                # Продолжаем работу без карточек - используем только данные из продаж
+            
+            # 3. Получаем данные об остатках
+            stocks_result = self.get_stocks_data()
+            stocks_data = stocks_result.get("data", []) if stocks_result.get("success") else []
+            
+            # 4. Объединяем данные
+            combined_report = self.build_combined_report(
+                date_from=date_from,
+                date_to=date_to,
+                sales_data=sales_data,
+                product_cards=product_cards,
+                stocks_data=stocks_data
+            )
+            
+            if combined_report:
+                # Сохраняем в Excel
+                if not filename:
+                    filename = f"wb_report_{date_from}_to_{date_to}.xlsx"
+                
+                self.save_to_excel(combined_report, filename=filename, data_folder=data_folder)
+                print(f"✓ Отчёт успешно собран из разных эндпоинтов и сохранён")
+                return True
             else:
-                error_msg = report_data.get("error", "Неизвестная ошибка")
-                print(f"⚠ Ошибка при получении детализированного отчёта: {error_msg}")
-                if report_data.get("response_text"):
-                    print(f"  Ответ сервера: {report_data.get('response_text')[:200]}")
+                print("⚠ Не удалось собрать отчёт из разных эндпоинтов")
+                raise Exception("Не удалось собрать отчёт")
+                
+        except Exception as e:
+            print(f"⚠ Ошибка при сборе данных по кусочкам: {e}")
+            import traceback
+            traceback.print_exc()
         
-        # Если детализированный API не сработал, возвращаем ошибку
+        # Если все методы не сработали, возвращаем ошибку
         print("❌ Не удалось получить детализированный отчёт ни через один из доступных API")
         print("Проверьте токен и доступность API")
+        print("Рекомендуется использовать /api/v2/nm-report/downloads с типом STOCK_HISTORY_REPORT_CSV")
         return False
     
     def print_sales_summary(self, sales_data: Dict):
