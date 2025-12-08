@@ -13,7 +13,6 @@ ENV/
 build/
 develop-eggs/
 dist/
-downloads/
 eggs/
 .eggs/
 lib/
@@ -37,6 +36,9 @@ wheels/
 *.json
 !package.json
 !package-lock.json
+
+# Chrome профиль (если используется локально)
+chrome_profile/
 
 
 

@@ -3,3 +3,21 @@ python-dotenv>=1.0.0
 pandas>=2.0.0
 openpyxl>=3.1.0
 
+# Selenium для браузерной автоматизации
+selenium>=4.15.0
+webdriver-manager>=4.0.0
+
+# Логирование
+loguru>=0.7.2
+
+# Валидация настроек
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Telegram бот (опционально)
+python-telegram-bot>=20.0
+
+# Для обхода детекции (опционально)
+# undetected-chromedriver>=3.5.0
+# selenium-stealth>=1.0.6
+
