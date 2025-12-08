@@ -1,0 +1,62 @@
+План получения данных через WB API
+
+Список товаров (карты товара). Воспользоваться Content API для получения всех товарных карточек. Например, метод POST /content/v2/get/cards/list вернёт список созданных товаров с полями brand (бренд), subjectName (предмет/категория), title (наименование), vendorCode (артикул поставщика), nmID (номер номенклатуры) и sizes.skus (список SKU/штрихкодов). Пример ответа содержит фрагменты вида:
+
+"nmID": 12345678, ... "subjectName": "AKF системы", "vendorCode": "wb7f6mumjr1", "brand": "Тест", "title": "Тест-система", ... "skus": ["987456321654"]
+dev.wildberries.ru
+dev.wildberries.ru
+.
+Это позволяет собрать поля «Бренд», «Предмет», «Наименование», «Артикул поставщика», «Номенклатура», «Баркод».
+
+Склады и остатки. Сначала получить список своих складов через метод GET /api/v3/warehouses
+dev.wildberries.ru
+. Ответ вернёт объекты с name (названием склада) и id. Например:
+
+"name": "Kosmonavtov 14", "id": 1
+dev.wildberries.ru
+.
+Затем для каждого склада получить остатки товаров по штрихкодам: метод POST /api/v3/stocks/{warehouseId} с телом вида {"skus":["<Barcode1>","<Barcode2>",...]}
+dev.wildberries.ru
+. В ответе придёт массив "stocks": [{"sku":"<Barcode>","amount":<число>}, ...], где amount – количество на складе
+dev.wildberries.ru
+. Таким образом можно получить «Текущий остаток» для каждого SKU на каждом складе.
+
+Данные по продажам (заказано/выкуплено). Использовать методы аналитики. Например, метод /api/v2/stocks-report/products/products формирует отчёт по товарам за выбранный период
+dev.wildberries.ru
+. В запросе задать currentPeriod на вчерашнюю дату. В ответе в разделе data.items будут поля:
+
+"ordersCount": <шт>, "ordersSum": <сумма>, "buyoutCount": <шт>, "buyoutSum": <сумма>, "stockCount": <число> ...
+dev.wildberries.ru
+dev.wildberries.ru
+.
+Здесь ordersCount соответствует «Заказано шт.», ordersSum – «Заказано себестоимость», buyoutCount – «Выкупили шт.», buyoutSum – «Выкупили руб.», а stockCount – «Текущий остаток» (суммарный по всем складам). Например, фрагмент ответа:
+"ordersCount": 100, "ordersSum": 100000, ... "buyoutCount": 150, "buyoutSum": 150000, ... "stockCount": 50
+dev.wildberries.ru
+dev.wildberries.ru
+.
+Если нужна детализация по складам, можно дополнительно вызвать метод /api/v2/stocks-report/products/sizes с параметром includeOffice=true
+dev.wildberries.ru
+. В его ответе в поле offices для каждой позиции будут метрики по конкретному складу (officeName) – см. пример с officeName и метриками в документации
+dev.wildberries.ru
+.
+
+Дополнительно (Sales Funnel API). Wildberries также предоставляет API «воронки продаж» (/api/analytics/v3/sales-funnel/...)
+dev.wildberries.ru
+, но для получения данных за один день (вчера) более прямым будет использование указанных выше «стоковых» отчётов.
+
+В итоге скрипт может работать так: взять список товаров через /content/v2/get/cards/list, собрать их ID и штрихкоды; получить список складов /api/v3/warehouses; для каждого склада запросить остатки /api/v3/stocks/{warehouseId}; затем получить статистику продаж /api/v2/stocks-report/products/products (и при необходимости детализацию /api/v2/stocks-report/products/sizes) для вчерашней даты. Эта комбинация обеспечит заполнение всех указанных колонок (бренд, предмет, наименование, артикул, номенклатура, штрихкод, склад, заказано шт., заказано себестоимость, выкупили шт., выкупили руб., текущий остаток) с соответствующими API-эндпоинтами и параметрами
+dev.wildberries.ru
+dev.wildberries.ru
+.
+
+Источники: документация WB API – разделы Product Cards List (контент API)
+dev.wildberries.ru
+dev.wildberries.ru
+, Get Warehouses/ Get Inventory (склады и остатки)
+dev.wildberries.ru
+dev.wildberries.ru
+, Stocks Report (аналитика продаж/остатков)
+dev.wildberries.ru
+dev.wildberries.ru
+dev.wildberries.ru
+.
