@@ -1,3 +1,1 @@
-"""
-Пакет для работы с API Wildberries
-"""
+"""WBagentforDasha - автоматизация выгрузки отчётов Wildberries."""

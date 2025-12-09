@@ -1,68 +1,65 @@
-"""
-Точка входа в приложение парсера Wildberries
-"""
-
+"""Точка входа в приложение."""
 import sys
 from pathlib import Path
 
-# Добавляем корневую директорию в путь для импортов
-sys.path.insert(0, str(Path(__file__).parent.parent))
+from loguru import logger
 
-from src.config.settings import Settings
-from src.utils.logger import setup_logger
-from src.agents.browser_agent import BrowserAgent
-
-logger = setup_logger()
+from src.config import Settings
+from src.utils import setup_logger
+from src.agents import BrowserAgent
 
 
-def main():
-    """Основная функция приложения"""
-    logger.info("="*60)
-    logger.info("Запуск парсера Wildberries")
-    logger.info("="*60)
-    
+def main() -> int:
+    """Основная функция приложения.
+
+    Returns:
+        Код возврата (0 - успех, 1 - ошибка)
+    """
     try:
-        # Загружаем настройки
+        # Загрузка настроек
         settings = Settings()
-        
-        logger.info(f"Стартовая страница: {settings.wildberries_start_url}")
-        logger.info(f"Профиль Chrome: {settings.chrome_profile_name}")
-        logger.info(f"Папка загрузок: {settings.downloads_dir}")
-        
-        # Проверка обязательных настроек
-        if not settings.chrome_user_data_dir:
-            logger.error("⚠ CHROME_USER_DATA_DIR не указан в настройках!")
-            logger.error("Укажите путь к профилю Chrome в .env файле")
-            return False
-        
-        # Создаём агент
+
+        # Настройка логирования
+        setup_logger(settings.logs_path)
+        logger.info("=" * 60)
+        logger.info("Запуск WBagentforDasha")
+        logger.info("=" * 60)
+
+        # Проверка наличия файла с примером первой строки
+        if not settings.example_first_stroke_path.exists():
+            logger.error(f"Файл с примером первой строки не найден: {settings.example_first_stroke_path}")
+            logger.error("Убедитесь, что файл example_first_stroke.XLSX существует в корне проекта")
+            return 1
+
+        # Информация о Yandex Browser
+        logger.info("Используется Yandex Browser")
+        if settings.yandex_browser_path:
+            logger.info(f"Путь к браузеру из .env: {settings.yandex_browser_path}")
+        if settings.yandex_user_data_dir:
+            logger.info(f"Путь к User Data из .env: {settings.yandex_user_data_dir}")
+        if settings.yandex_profile_name:
+            logger.info(f"Профиль из .env: {settings.yandex_profile_name}")
+
+        # Создание агента
         agent = BrowserAgent(settings)
-        
-        # Выполняем основной поток
-        success = agent.execute_flow()
-        
-        if success:
-            logger.success("="*60)
-            logger.success("✓ Процесс завершён успешно!")
-            logger.success("="*60)
-        else:
-            logger.error("="*60)
-            logger.error("✗ Процесс завершён с ошибками")
-            logger.error("="*60)
-        
-        return success
-        
+
+        # Выполнение основного потока
+        agent.execute_flow()
+
+        logger.success("=" * 60)
+        logger.success("Работа завершена успешно")
+        logger.success("=" * 60)
+        return 0
+
     except KeyboardInterrupt:
         logger.warning("Прервано пользователем")
-        return False
+        return 1
+
     except Exception as e:
         logger.error(f"Критическая ошибка: {e}")
         logger.exception("Детали ошибки:")
-        return False
+        return 1
 
 
 if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
-
-
+    sys.exit(main())

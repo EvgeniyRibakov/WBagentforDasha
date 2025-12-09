@@ -1,36 +1,32 @@
-"""
-Основной браузерный агент для работы с Wildberries Seller
-Аналог Ozon проекта, адаптированный под Wildberries
-"""
-
+"""Агент для автоматизации работы с браузером Wildberries."""
 import os
+import re
 import time
-import random
+import shutil
 import subprocess
-import psutil
-from pathlib import Path
-from typing import Optional, List, Dict
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Optional, Dict, List
 
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from webdriver_manager.chrome import ChromeDriverManager
+from openpyxl import load_workbook
 from loguru import logger
 
 from src.config.settings import Settings
 
 
 class BrowserAgent:
-    """Агент для автоматизации работы с Wildberries Seller через браузер"""
-    
+    """Агент для автоматизации работы с браузером Wildberries."""
+
+    # URL страницы отчётов Wildberries (явно указан в коде)
+    WILDBERRIES_REPORTS_URL = "https://seller.wildberries.ru/analytics-reports/sales"
+
     # Список кабинетов для обработки
-    CABINETS = [
+    CABINETS: List[Dict[str, str]] = [
         {"name": "MAU", "id": "53607"},
         {"name": "MAB", "id": "121614"},
         {"name": "MMA", "id": "174711"},
@@ -38,962 +34,997 @@ class BrowserAgent:
         {"name": "dreamlab", "id": "1140223"},
         {"name": "beautylab", "id": "4428365"},
     ]
-    
+
     def __init__(self, settings: Settings):
-        """
-        Инициализация агента
-        
+        """Инициализация агента.
+
         Args:
             settings: Настройки приложения
         """
         self.settings = settings
-        self.driver: Optional[webdriver.Chrome] = None
-        self.downloads_dir = Path(settings.downloads_dir).absolute()
+        self.driver: Optional[uc.Chrome] = None
+        self.downloads_dir = Path(settings.downloads_dir).resolve()
+        self.data_dir = Path(settings.data_dir).resolve()
+        self.example_first_stroke_path = Path(settings.example_first_stroke_file).resolve()
+
+        # Создаём необходимые папки
         self.downloads_dir.mkdir(parents=True, exist_ok=True)
-        self.data_dir = Path("data")
         self.data_dir.mkdir(parents=True, exist_ok=True)
-        
-    def _kill_chrome_processes(self) -> None:
-        """Принудительное закрытие всех процессов Chrome и ChromeDriver"""
-        logger.info("Закрытие всех процессов Chrome и ChromeDriver...")
-        
-        processes_killed = 0
-        try:
-            for proc in psutil.process_iter(['pid', 'name']):
-                try:
-                    proc_name = proc.info['name'].lower()
-                    if 'chrome' in proc_name or 'chromedriver' in proc_name:
-                        logger.info(f"Завершение процесса: {proc.info['name']} (PID: {proc.info['pid']})")
-                        proc.kill()
-                        processes_killed += 1
-                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                    pass
-            
-            if processes_killed > 0:
-                logger.info(f"✓ Завершено процессов: {processes_killed}")
-                time.sleep(2)  # Даём время процессам завершиться
-            else:
-                logger.info("Процессы Chrome не найдены")
-                
-        except Exception as e:
-            logger.warning(f"Ошибка при закрытии процессов Chrome: {e}")
-            # Альтернативный способ через taskkill (Windows)
-            try:
-                subprocess.run(['taskkill', '/F', '/IM', 'chrome.exe'], 
-                             capture_output=True, timeout=5)
-                subprocess.run(['taskkill', '/F', '/IM', 'chromedriver.exe'], 
-                             capture_output=True, timeout=5)
-                logger.info("Попытка закрыть Chrome через taskkill выполнена")
-                time.sleep(2)
-            except Exception as e2:
-                logger.warning(f"Не удалось закрыть через taskkill: {e2}")
-    
+
     def start_browser(self) -> None:
-        """Запуск браузера с профилем Chrome"""
-        logger.info("Запуск Chrome...")
-        
-        options = Options()
-        
-        # Базовые аргументы
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-blink-features=AutomationControlled")
-        
-        # Профиль Chrome
-        if self.settings.chrome_user_data_dir:
-            user_data_dir = os.path.expandvars(self.settings.chrome_user_data_dir)
-            path_str = str(Path(user_data_dir).absolute())
-            
-            if os.path.exists(path_str):
-                # Используем абсолютный путь
-                options.add_argument(f'--user-data-dir={path_str}')
-                options.add_argument(f'--profile-directory={self.settings.chrome_profile_name}')
-                logger.info(f"Профиль: {path_str} / {self.settings.chrome_profile_name}")
-            else:
-                logger.error(f"❌ Путь к профилю не существует: {path_str}")
-                raise FileNotFoundError(f"Профиль Chrome не найден: {path_str}")
-        
-        # Настройка скачивания
-        downloads_path = str(self.downloads_dir.absolute())
-        prefs = {
-            "download.default_directory": downloads_path,
-            "download.prompt_for_download": False,
-        }
-        options.add_experimental_option("prefs", prefs)
-        
-        # Убираем признаки автоматизации
-        options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option('useAutomationExtension', False)
-        
-        # Запуск браузера
-        logger.info("Инициализация ChromeDriver...")
-        service = Service(ChromeDriverManager().install())
-        
-        logger.info("Запуск Chrome...")
+        """Запуск Yandex Browser."""
         try:
-            self.driver = webdriver.Chrome(service=service, options=options)
+            self._start_yandex_browser()
         except Exception as e:
-            error_msg = str(e)
-            logger.error(f"❌ Ошибка запуска Chrome: {error_msg}")
-            
-            # Если ошибка DevToolsActivePort - пробуем альтернативный способ
-            if "DevToolsActivePort" in error_msg:
-                logger.info("Пробуем альтернативный способ запуска...")
-                # Пробуем без некоторых аргументов
-                options_alt = Options()
-                options_alt.add_argument("--no-sandbox")
-                if self.settings.chrome_user_data_dir:
-                    user_data_dir = os.path.expandvars(self.settings.chrome_user_data_dir)
-                    path_str = str(Path(user_data_dir).absolute())
-                    options_alt.add_argument(f'--user-data-dir={path_str}')
-                    options_alt.add_argument(f'--profile-directory={self.settings.chrome_profile_name}')
-                downloads_path = str(self.downloads_dir.absolute())
-                prefs = {
-                    "download.default_directory": downloads_path,
-                    "download.prompt_for_download": False,
-                }
-                options_alt.add_experimental_option("prefs", prefs)
-                self.driver = webdriver.Chrome(service=service, options=options_alt)
-            else:
-                raise
+            logger.error(f"Ошибка при запуске Yandex Browser: {e}")
+            raise
+
+
+    def _start_yandex_browser(self) -> None:
+        """Запуск Yandex Browser с профилем из настроек (.env)."""
+        options = uc.ChromeOptions()
+
+        # Определяем путь к Yandex Browser
+        if self.settings.yandex_browser_path:
+            browser_path = Path(os.path.expandvars(self.settings.yandex_browser_path)).expanduser()
+        else:
+            browser_path = Path(os.path.expandvars("%LOCALAPPDATA%")) / "Yandex" / "YandexBrowser" / "Application" / "browser.exe"
         
-        logger.success("✓ Браузер запущен")
+        if not browser_path.exists():
+            logger.error(f"✗ Yandex Browser не найден: {browser_path}")
+            raise Exception(f"Yandex Browser не найден: {browser_path}")
+
+        options.binary_location = str(browser_path.absolute())
+        logger.info(f"✓ Yandex Browser: {browser_path}")
+
+        # Настройки User Data и профиля
+        if not self.settings.yandex_user_data_dir:
+            user_data_path = Path(os.path.expandvars("%LOCALAPPDATA%")) / "Yandex" / "YandexBrowser" / "User Data"
+        else:
+            user_data_path = Path(os.path.expandvars(self.settings.yandex_user_data_dir)).expanduser()
+
+        profile_name = self.settings.yandex_profile_name or "Default"
+        profile_path = user_data_path / profile_name
+
+        # Профиль
+        if user_data_path.exists():
+            options.add_argument(f'--user-data-dir={str(user_data_path.absolute())}')
+            options.add_argument(f'--profile-directory={profile_name}')
+            logger.info(f"✓ Профиль: {profile_name}")
+        else:
+            logger.error(f"✗ User Data не найден: {user_data_path}")
+            raise Exception(f"User Data не найден: {user_data_path}")
+
+        # НЕ добавляем prefs через options.add_experimental_option
+        # Это вызывает чтение повреждённого Default/Preferences
+        # Вместо этого настроим через аргументы
         
-        # Максимизируем окно
+        # Базовые опции
+        options.add_argument("--start-maximized")
+        options.add_argument(f"--download-directory={str(self.downloads_dir.absolute())}")
+
+        # Запуск с отключенной обработкой prefs
+        logger.info("Запуск браузера...")
+        
         try:
-            self.driver.maximize_window()
-        except:
-            pass
-        
-        time.sleep(2)
-        
-        # СРАЗУ открываем страницу Wildberries (прямо в коде)
-        wb_url = "https://seller.wildberries.ru/analytics-reports/sales"
-        logger.info(f"Открытие страницы: {wb_url}")
-        self.driver.get(wb_url)
-        
-        # Ждём загрузки
-        time.sleep(5)
-        logger.success(f"✓ Страница открыта: {self.driver.current_url}")
-    
-    def wait_for_element(self, by: By, value: str, timeout: int = 20) -> Optional[object]:
-        """
-        Ожидание появления элемента
-        
-        Args:
-            by: Способ поиска (By.ID, By.CSS_SELECTOR и т.д.)
-            value: Значение для поиска
-            timeout: Таймаут ожидания в секундах
-            
-        Returns:
-            WebElement или None если не найден
-        """
-        try:
-            element = WebDriverWait(self.driver, timeout).until(
-                EC.presence_of_element_located((by, value))
+            self.driver = uc.Chrome(
+                options=options,
+                browser_executable_path=str(browser_path),
+                version_main=140,
+                use_subprocess=False,  # КРИТИЧНО: отключает чтение Default/Preferences
+                suppress_welcome=False
             )
-            return element
-        except TimeoutException:
-            logger.error(f"Элемент не найден: {by}={value} (таймаут {timeout}с)")
-            return None
-    
-    def wait_for_clickable(self, by: By, value: str, timeout: int = 20) -> Optional[object]:
-        """
-        Ожидание кликабельности элемента
-        
-        Args:
-            by: Способ поиска
-            value: Значение для поиска
-            timeout: Таймаут ожидания в секундах
-            
-        Returns:
-            WebElement или None если не найден
-        """
-        try:
-            element = WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((by, value))
-            )
-            return element
-        except TimeoutException:
-            logger.error(f"Элемент не кликабелен: {by}={value} (таймаут {timeout}с)")
-            return None
-    
-    def wait_for_dynamic_content(self, timeout: int = 20) -> None:
-        """
-        Ожидание полной загрузки динамического контента
-        
-        Args:
-            timeout: Таймаут ожидания в секундах
-        """
-        try:
-            # Ожидаем готовности документа
-            WebDriverWait(self.driver, timeout).until(
-                lambda d: d.execute_script("return document.readyState") == "complete"
-            )
-            
-            # Дополнительная проверка на отсутствие загрузчиков
-            WebDriverWait(self.driver, timeout).until(
-                lambda d: len(d.find_elements(By.CSS_SELECTOR, ".loader, .spinner, [class*='loading']")) == 0
-            )
-            
-            logger.debug("Динамический контент загружен")
-        except TimeoutException:
-            logger.warning("Таймаут ожидания загрузки динамического контента")
-    
-    def click_button(self, by: By, value: str, description: str = "") -> bool:
-        """
-        Клик по кнопке с ожиданием и задержками
-        
-        Args:
-            by: Способ поиска
-            value: Значение для поиска
-            description: Описание действия для логов
-            
-        Returns:
-            True если успешно, False при ошибке
-        """
-        try:
-            # Ожидание перед кликом
-            time.sleep(self.settings.delay_before_click)
-            
-            element = self.wait_for_clickable(by, value)
-            if not element:
-                logger.error(f"Не удалось найти кликабельный элемент: {description or value}")
-                return False
-            
-            # Прокрутка к элементу
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
-            time.sleep(0.5)
-            
-            # Клик
-            element.click()
-            logger.info(f"✓ Клик выполнен: {description or value}")
-            
-            # Ожидание после клика
-            time.sleep(self.settings.delay_after_click)
-            
-            return True
-            
+            logger.success("✓ Браузер запущен")
         except Exception as e:
-            logger.error(f"Ошибка при клике на {description or value}: {e}")
-            return False
-    
-    def fill_input(self, by: By, value: str, text: str, description: str = "", clear_first: bool = True) -> bool:
-        """
-        Заполнение поля ввода с имитацией человеческого ввода
-        
+            logger.error(f"Ошибка запуска: {e}")
+            raise
+
+    def _get_yandex_browser_version(self, browser_path: Path) -> Optional[int]:
+        """Определяет версию Yandex Browser.
+
         Args:
-            by: Способ поиска
-            value: Значение для поиска
-            text: Текст для ввода
-            description: Описание действия для логов
-            clear_first: Очистить поле перед вводом
-            
+            browser_path: Путь к исполняемому файлу браузера
+
         Returns:
-            True если успешно, False при ошибке
+            Версия браузера (major version number) или None
         """
+        # Если версия указана в настройках, используем её
+        if self.settings.yandex_browser_version:
+            logger.info(f"Используется версия из настроек: {self.settings.yandex_browser_version}")
+            return self.settings.yandex_browser_version
+
         try:
-            # Ожидание перед вводом
-            time.sleep(self.settings.delay_before_type)
+            # Пытаемся получить версию через команду браузера
+            result = subprocess.run(
+                [str(browser_path), "--version"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            )
             
-            element = self.wait_for_element(by, value)
-            if not element:
-                logger.error(f"Не удалось найти поле ввода: {description or value}")
-                return False
-            
-            # Прокрутка к элементу
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
-            time.sleep(0.5)
-            
-            # Очистка поля если нужно
-            if clear_first:
-                element.clear()
-                time.sleep(0.3)
-            
-            # Имитация человеческого ввода (посимвольный ввод)
-            for char in text:
-                element.send_keys(char)
-                time.sleep(random.uniform(0.05, self.settings.delay_between_keys))
-            
-            logger.info(f"✓ Поле заполнено: {description or value} = {text}")
-            
-            # Ожидание после ввода
-            time.sleep(self.settings.delay_after_type)
-            
-            return True
-            
+            if result.returncode == 0:
+                version_output = result.stdout.strip()
+                logger.debug(f"Версия браузера из --version: {version_output}")
+                
+                # Ищем версию в формате "Yandex Browser 138.0.7204.1908" или "138.0.7204.1908"
+                match = re.search(r'(\d+)\.\d+\.\d+\.\d+', version_output)
+                if match:
+                    full_version = match.group(1)
+                    major_version = int(full_version)
+                    logger.info(f"Определена версия Yandex Browser: {major_version} (из {version_output})")
+                    return major_version
         except Exception as e:
-            logger.error(f"Ошибка при заполнении поля {description or value}: {e}")
-            return False
-    
-    def navigate_to_url(self, url: str) -> bool:
-        """
-        Переход на URL с ожиданием загрузки
-        
+            logger.warning(f"Не удалось определить версию браузера автоматически: {e}")
+
+        # Пытаемся найти версию в папке Application
+        try:
+            app_dir = browser_path.parent
+            # Ищем файл с версией или папку с версией
+            for item in app_dir.parent.iterdir():
+                if item.is_dir() and re.match(r'^\d+\.\d+\.\d+\.\d+$', item.name):
+                    major_version = int(item.name.split('.')[0])
+                    logger.info(f"Определена версия Yandex Browser из папки: {major_version}")
+                    return major_version
+        except Exception as e:
+            logger.warning(f"Не удалось определить версию из папки: {e}")
+
+        # Если не удалось определить, используем версию по умолчанию (140)
+        # Yandex Browser обычно обновляется до последних версий Chromium
+        logger.warning("Не удалось определить версию браузера, используется версия по умолчанию: 140")
+        return 140
+
+    def close_browser(self) -> None:
+        """Закрытие браузера."""
+        if self.driver:
+            try:
+                self.driver.quit()
+                logger.info("Браузер закрыт")
+            except Exception as e:
+                logger.error(f"Ошибка при закрытии браузера: {e}")
+
+    def navigate_to_url(self, url: str) -> None:
+        """Переход на указанный URL.
+
         Args:
-            url: URL для перехода
-            
-        Returns:
-            True если успешно, False при ошибке
+            url: URL для перехода (явно указан: https://seller.wildberries.ru/analytics-reports/sales)
         """
         try:
+            # Убеждаемся, что у нас есть активное окно браузера
             if not self.driver:
-                logger.error("Браузер не запущен!")
-                return False
+                raise Exception("Браузер не запущен")
             
-            logger.info(f"Открытие страницы в адресной строке: {url}")
+            window_handles = self.driver.window_handles
+            if not window_handles:
+                raise Exception("Нет открытых окон браузера")
             
-            # Принудительный переход на URL
-            self.driver.get(url)
-            
-            # Ожидание загрузки страницы
-            logger.info("Ожидание загрузки страницы...")
-            time.sleep(self.settings.delay_page_load)
-            
-            # Ожидание готовности документа
-            WebDriverWait(self.driver, 20).until(
-                lambda d: d.execute_script("return document.readyState") == "complete"
-            )
-            
-            self.wait_for_dynamic_content()
+            # Переключаемся на первое окно
+            self.driver.switch_to.window(window_handles[0])
             
             # Проверяем текущий URL
-            current_url = self.driver.current_url
-            logger.info(f"Текущий URL после перехода: {current_url}")
-            
-            # Проверяем, что мы на правильной странице
-            if url in current_url or "wildberries.ru" in current_url:
-                logger.success(f"✓ Страница загружена: {current_url}")
-                return True
-            else:
-                logger.warning(f"⚠ Перешли на другую страницу: {current_url}")
-                logger.warning(f"Ожидалось: {url}")
-                # Пробуем перейти ещё раз
-                logger.info("Повторная попытка перехода...")
-                self.driver.get(url)
-                time.sleep(self.settings.delay_page_load)
+            try:
                 current_url = self.driver.current_url
-                if url in current_url or "wildberries.ru" in current_url:
-                    logger.success(f"✓ Страница загружена после повторной попытки: {current_url}")
-                    return True
-                else:
-                    logger.error(f"Не удалось перейти на нужную страницу. Текущий URL: {current_url}")
-                    return False
+                logger.info(f"Текущий URL: {current_url}")
+            except Exception:
+                current_url = ""
+                logger.warning("Не удалось получить текущий URL, продолжаем...")
             
-        except Exception as e:
-            logger.error(f"Ошибка при переходе на {url}: {e}")
-            logger.exception("Детали ошибки:")
-            return False
-    
-    def check_session(self) -> bool:
-        """
-        Проверка активной сессии (нет формы авторизации)
-        
-        Returns:
-            True если сессия активна, False если требуется авторизация
-        """
-        try:
-            current_url = self.driver.current_url
-            logger.info(f"Проверка сессии. Текущий URL: {current_url}")
+            # Если уже на нужной странице, обновляем её
+            if url in current_url or "seller.wildberries.ru/analytics-reports/sales" in current_url:
+                logger.info("Уже на странице Wildberries, обновляем страницу")
+                self.driver.refresh()
+            else:
+                # Открываем нужную страницу
+                logger.info(f"Открытие страницы: {url}")
+                self.driver.get(url)
             
-            # Проверяем наличие элементов авторизации
-            auth_selectors = [
-                "input[type='password']",
-                "input[name*='password']",
-                "input[id*='password']",
-                "input[placeholder*='парол']",
-                "input[placeholder*='Парол']",
-                "button[type='submit'][class*='login']",
-                "button[class*='auth']",
-                "button:contains('Войти')",
-                "button:contains('Вход')",
-                "form[class*='auth']",
-                "form[class*='login']",
-            ]
+            # Ждём загрузки страницы
+            logger.info("Ожидание загрузки страницы...")
+            time.sleep(self.settings.delay_page_load)
+
+            # Ожидание полной загрузки страницы
+            WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                lambda d: d.execute_script("return document.readyState") == "complete"
+            )
             
-            auth_found = False
-            for selector in auth_selectors:
-                try:
-                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    if elements:
-                        logger.warning(f"⚠ Найден элемент авторизации: {selector}")
-                        auth_found = True
-                        break
-                except:
-                    continue
-            
-            # Проверяем наличие элементов страницы отчётов (признак успешной авторизации)
-            report_selectors = [
-                "input[id='suppliers-search']",
-                "input[name='suppliers-search']",
-                "input[placeholder*='ИНН']",
-                "input[placeholder*='ID']",
-                "button:contains('Выгрузить в Excel')",
-                "button[class*='Date-input__icon-button']",
-            ]
-            
-            report_found = False
-            for selector in report_selectors:
-                try:
-                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    if elements:
-                        logger.debug(f"✓ Найден элемент страницы отчётов: {selector}")
-                        report_found = True
-                        break
-                except:
-                    continue
-            
-            # Если найдены элементы авторизации И нет элементов отчётов - требуется авторизация
-            if auth_found and not report_found:
-                logger.error("⚠ Обнаружена форма авторизации - сессия истекла или требуется вход!")
-                return False
-            
-            # Если найдены элементы отчётов - авторизация успешна
-            if report_found:
-                logger.success("✓ Сессия активна, страница отчётов загружена")
-                return True
-            
-            # Если ничего не найдено - проверяем URL
-            if "login" in current_url.lower() or "auth" in current_url.lower():
-                logger.error("⚠ URL указывает на страницу авторизации")
-                return False
-            
-            logger.warning("⚠ Не удалось определить статус авторизации, предполагаем что требуется авторизация")
-            return False
-            
-        except Exception as e:
-            logger.warning(f"Ошибка при проверке сессии: {e}")
-            return False  # В случае ошибки предполагаем что требуется авторизация
-    
-    def handle_authorization(self) -> bool:
-        """
-        Автоматическая авторизация на Wildberries
-        
-        Returns:
-            True если авторизация успешна, False при ошибке
-        """
-        try:
-            if not self.settings.password:
-                logger.error("Пароль не указан в настройках")
-                return False
-            
-            logger.info("Поиск формы авторизации...")
+            # Дополнительная проверка - ждём пока страница действительно загрузится
             time.sleep(2)
             
-            # Ищем поле для телефона/email
-            phone_email_selectors = [
-                "input[type='tel']",
-                "input[name*='phone']",
-                "input[id*='phone']",
-                "input[name*='email']",
-                "input[id*='email']",
-                "input[placeholder*='Телефон']",
-                "input[placeholder*='телефон']",
-                "input[placeholder*='Email']",
-                "input[placeholder*='email']",
-            ]
-            
-            phone_email_field = None
-            for selector in phone_email_selectors:
-                try:
-                    field = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    if field.is_displayed():
-                        phone_email_field = field
-                        logger.info(f"✓ Найдено поле для телефона/email: {selector}")
-                        break
-                except:
-                    continue
-            
-            if not phone_email_field:
-                logger.error("❌ Не найдено поле для телефона/email")
-                return False
-            
-            # Вводим телефон или email
-            login_value = self.settings.phone_number or self.settings.email
-            if not login_value:
-                logger.error("❌ Не указан телефон или email в настройках")
-                return False
-            
-            logger.info("Ввод телефона/email...")
-            phone_email_field.clear()
-            time.sleep(self.settings.delay_before_type)
-            
-            for char in login_value:
-                phone_email_field.send_keys(char)
-                time.sleep(self.settings.delay_between_keys)
-            
-            time.sleep(self.settings.delay_after_type)
-            
-            # Ищем поле для пароля
-            password_selectors = [
-                "input[type='password']",
-                "input[name*='password']",
-                "input[id*='password']",
-                "input[placeholder*='парол']",
-                "input[placeholder*='Парол']",
-            ]
-            
-            password_field = None
-            for selector in password_selectors:
-                try:
-                    field = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    if field.is_displayed():
-                        password_field = field
-                        logger.info(f"✓ Найдено поле для пароля: {selector}")
-                        break
-                except:
-                    continue
-            
-            if not password_field:
-                logger.error("❌ Не найдено поле для пароля")
-                return False
-            
-            # Вводим пароль
-            logger.info("Ввод пароля...")
-            password_field.clear()
-            time.sleep(self.settings.delay_before_type)
-            
-            for char in self.settings.password:
-                password_field.send_keys(char)
-                time.sleep(self.settings.delay_between_keys)
-            
-            time.sleep(self.settings.delay_after_type)
-            
-            # Ищем кнопку входа
-            login_button_selectors = [
-                "button[type='submit']",
-                "button[class*='login']",
-                "button[class*='auth']",
-                "button[class*='enter']",
-                "button:contains('Войти')",
-                "button:contains('Вход')",
-                "input[type='submit']",
-            ]
-            
-            login_button = None
-            for selector in login_button_selectors:
-                try:
-                    button = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    if button.is_displayed() and button.is_enabled():
-                        login_button = button
-                        logger.info(f"✓ Найдена кнопка входа: {selector}")
-                        break
-                except:
-                    continue
-            
-            if not login_button:
-                logger.error("❌ Не найдена кнопка входа")
-                return False
-            
-            # Нажимаем кнопку входа
-            logger.info("Нажатие кнопки входа...")
-            time.sleep(self.settings.delay_before_click)
-            login_button.click()
-            time.sleep(self.settings.delay_after_click)
-            
-            # Ждём завершения авторизации
-            logger.info("Ожидание завершения авторизации...")
-            time.sleep(5)
-            
-            # Проверяем успешность авторизации
-            if self.check_session():
-                logger.success("✓ Авторизация успешна!")
-                return True
-            else:
-                logger.warning("⚠ Авторизация может быть не завершена, проверьте вручную")
-                return False
+            # Проверяем текущий URL после загрузки
+            try:
+                final_url = self.driver.current_url
+                logger.info(f"URL после загрузки: {final_url}")
                 
+                if url not in final_url and "seller.wildberries.ru" not in final_url:
+                    logger.warning(f"⚠ Страница не открылась правильно. Текущий URL: {final_url}")
+                    logger.info("Повторная попытка открытия страницы...")
+                    self.driver.get(url)
+                    time.sleep(self.settings.delay_page_load)
+                    WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                        lambda d: d.execute_script("return document.readyState") == "complete"
+                    )
+                    time.sleep(2)
+            except Exception as e:
+                logger.warning(f"Не удалось проверить URL после загрузки: {e}")
+
+            # Проверка авторизации
+            logger.info("Проверка статуса авторизации...")
+            if self._check_authorization_required():
+                logger.warning("Требуется авторизация, начинаем процесс...")
+                self._perform_authorization()
+            else:
+                logger.success("✓ Авторизация уже выполнена, пропускаем этап авторизации")
+
+            # Проверка, что мы на странице отчётов
+            # Проверяем наличие характерных элементов страницы
+            page_loaded = False
+            try:
+                # Вариант 1: Есть поле поиска кабинетов (для пользователей с несколькими кабинетами)
+                WebDriverWait(self.driver, 5).until(
+                    EC.presence_of_element_located((By.ID, "suppliers-search"))
+                )
+                logger.success("✓ Страница отчётов загружена (найдено поле поиска кабинетов)")
+                page_loaded = True
+            except TimeoutException:
+                # Вариант 2: Проверяем наличие кнопки календаря (есть у всех)
+                try:
+                    WebDriverWait(self.driver, 5).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, 'button.Date-input__icon-button__WnbzIWQzsq'))
+                    )
+                    logger.success("✓ Страница отчётов загружена (найдена кнопка календаря)")
+                    page_loaded = True
+                except TimeoutException:
+                    # Вариант 3: Проверяем наличие заголовка "Продажи"
+                    try:
+                        WebDriverWait(self.driver, 5).until(
+                            EC.presence_of_element_located((By.XPATH, "//span[text()='Продажи']"))
+                        )
+                        logger.success("✓ Страница отчётов загружена (найден заголовок 'Продажи')")
+                        page_loaded = True
+                    except TimeoutException:
+                        pass
+            
+            if not page_loaded:
+                logger.error("⚠ Не удалось найти характерные элементы страницы отчётов")
+                try:
+                    logger.error(f"Текущий URL: {self.driver.current_url}")
+                except:
+                    pass
+                raise Exception("Не удалось найти элементы страницы отчётов. Возможно, требуется повторная авторизация.")
+
+        except Exception as e:
+            logger.error(f"Ошибка при переходе на страницу: {e}")
+            try:
+                logger.error(f"Текущий URL: {self.driver.current_url}")
+            except:
+                logger.error("Не удалось получить текущий URL")
+            raise
+
+    def _check_authorization_required(self) -> bool:
+        """Проверка, требуется ли авторизация.
+
+        Returns:
+            True если требуется авторизация, False иначе
+        """
+        try:
+            # Сначала проверяем, авторизованы ли мы уже (проверяем характерные элементы страницы)
+            # Вариант 1: Есть поле поиска кабинетов
+            try:
+                WebDriverWait(self.driver, 3).until(
+                    EC.presence_of_element_located((By.ID, "suppliers-search"))
+                )
+                logger.success("✓ Уже авторизованы - найдено поле поиска кабинетов")
+                return False
+            except TimeoutException:
+                pass
+            
+            # Вариант 2: Есть кнопка календаря (характерный элемент страницы отчётов)
+            try:
+                WebDriverWait(self.driver, 3).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, 'button.Date-input__icon-button__WnbzIWQzsq'))
+                )
+                logger.success("✓ Уже авторизованы - найдена кнопка календаря на странице отчётов")
+                return False
+            except TimeoutException:
+                pass
+            
+            # Вариант 3: Есть заголовок "Продажи" или "Отчеты"
+            try:
+                WebDriverWait(self.driver, 3).until(
+                    EC.presence_of_element_located((By.XPATH, "//span[text()='Продажи' or text()='Отчеты']"))
+                )
+                logger.success("✓ Уже авторизованы - найден заголовок страницы отчётов")
+                return False
+            except TimeoutException:
+                pass
+            
+            # Проверяем наличие поля ввода телефона (признак страницы авторизации)
+            try:
+                WebDriverWait(self.driver, 3).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, 'input[data-testid="phone-input"]'))
+                )
+                logger.warning("⚠ Требуется авторизация - обнаружено поле ввода телефона")
+                return True
+            except TimeoutException:
+                pass
+            
+            # Проверяем URL - если содержит "login" или "auth", то требуется авторизация
+            current_url = self.driver.current_url
+            if "login" in current_url.lower() or "auth" in current_url.lower():
+                logger.warning(f"⚠ Требуется авторизация - URL содержит 'login' или 'auth': {current_url}")
+                return True
+            
+            # Если ничего не найдено, считаем что авторизованы
+            logger.info("Проверка авторизации: элементы страницы авторизации не найдены, считаем что авторизованы")
+            return False
+            
+        except Exception as e:
+            logger.error(f"Ошибка при проверке авторизации: {e}")
+            # В случае ошибки считаем, что авторизация требуется
+            return True
+
+    def _perform_authorization(self) -> None:
+        """Выполнение авторизации."""
+        try:
+            if not self.settings.phone_number:
+                raise Exception("Номер телефона не указан в настройках (PHONE_NUMBER)")
+
+            logger.info("Начало процесса авторизации")
+
+            # Шаг 1: Ввод номера телефона
+            logger.info("Ввод номера телефона")
+            phone_input = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, 'input[data-testid="phone-input"]'))
+            )
+            time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
+            phone_input.click()
+            time.sleep(self.settings.delay_after_click)  # Задержка после клика
+            phone_input.clear()
+            time.sleep(0.5)
+
+            # Ввод номера телефона посимвольно
+            # Убираем все символы кроме цифр
+            phone_number_clean = ''.join(filter(str.isdigit, self.settings.phone_number))
+            
+            # Убираем +7 в начале, если есть (оставляем только цифры после +7)
+            if phone_number_clean.startswith('7') and len(phone_number_clean) == 11:
+                phone_number_clean = phone_number_clean[1:]  # Убираем первую 7
+            elif phone_number_clean.startswith('7') and len(phone_number_clean) > 11:
+                phone_number_clean = phone_number_clean[1:]  # Убираем первую 7
+            
+            # Вводим только цифры (без +7)
+            for char in phone_number_clean:
+                phone_input.send_keys(char)
+                time.sleep(self.settings.delay_between_keys)
+
+            logger.success(f"✓ Номер телефона введён: {phone_number_clean}")
+
+            # Шаг 2: Нажатие кнопки отправки (стрелка)
+            logger.info("Нажатие кнопки отправки номера")
+            submit_button = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="submit-phone-button"]'))
+            )
+            time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
+            submit_button.click()
+            time.sleep(self.settings.delay_after_click)  # Задержка после клика
+            logger.success("✓ Кнопка отправки нажата")
+
+            time.sleep(2)  # Ожидание загрузки формы ввода кода
+
+            # Шаг 3: Запрос первого кода авторизации
+            logger.info("Ожидание поля для ввода кода авторизации")
+            code_input = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, 'input[type="numeric"]'))
+            )
+
+            # Запрашиваем код у пользователя
+            logger.info("=" * 60)
+            logger.info("ТРЕБУЕТСЯ КОД АВТОРИЗАЦИИ")
+            logger.info("Пожалуйста, введите код из 6 символов, отправленный на телефон")
+            logger.info("=" * 60)
+            code1 = input("Введите код авторизации (6 символов): ").strip()
+
+            # Ввод первого кода
+            time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
+            code_input.click()
+            time.sleep(self.settings.delay_after_click)  # Задержка после клика
+            code_input.clear()
+            time.sleep(0.5)
+            for char in code1:
+                code_input.send_keys(char)
+                time.sleep(self.settings.delay_between_keys)
+
+            logger.success("✓ Первый код введён")
+
+            # Нажатие кнопки отправки (если есть)
+            try:
+                submit_code_button = WebDriverWait(self.driver, 3).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]'))
+                )
+                time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
+                submit_code_button.click()
+                time.sleep(self.settings.delay_after_click)  # Задержка после клика
+                time.sleep(2)
+            except TimeoutException:
+                # Кнопка может отсутствовать, код может отправляться автоматически
+                pass
+
+            # Шаг 4: Запрос второго кода (код на почту)
+            logger.info("Ожидание поля для ввода второго кода")
+            time.sleep(2)
+
+            # Ищем поле для второго кода (может быть то же самое или новое)
+            try:
+                code_input2 = WebDriverWait(self.driver, 5).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, 'input[type="numeric"]'))
+                )
+            except TimeoutException:
+                # Если поле не найдено, возможно авторизация завершена
+                logger.info("Поле для второго кода не найдено, проверяем авторизацию...")
+                time.sleep(2)
+                if not self._check_authorization_required():
+                    logger.success("✓ Авторизация завершена")
+                    return
+
+            # Запрашиваем второй код у пользователя
+            logger.info("=" * 60)
+            logger.info("ТРЕБУЕТСЯ ВТОРОЙ КОД АВТОРИЗАЦИИ")
+            logger.info("Пожалуйста, введите код из 6 символов, отправленный на почту")
+            logger.info("=" * 60)
+            code2 = input("Введите код авторизации с почты (6 символов): ").strip()
+
+            # Ввод второго кода
+            time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
+            code_input2.click()
+            time.sleep(self.settings.delay_after_click)  # Задержка после клика
+            code_input2.clear()
+            time.sleep(0.5)
+            for char in code2:
+                code_input2.send_keys(char)
+                time.sleep(self.settings.delay_between_keys)
+
+            logger.success("✓ Второй код введён")
+
+            # Нажатие кнопки входа
+            try:
+                login_button = WebDriverWait(self.driver, 5).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]'))
+                )
+                time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
+                login_button.click()
+                time.sleep(self.settings.delay_after_click)  # Задержка после клика
+                logger.success("✓ Кнопка входа нажата")
+            except TimeoutException:
+                # Кнопка может отсутствовать, авторизация может завершиться автоматически
+                pass
+
+            # Ожидание завершения авторизации и перехода на страницу отчётов
+            time.sleep(5)
+
+            # Проверяем, что авторизация завершена
+            if self._check_authorization_required():
+                logger.error("Авторизация не завершена")
+                raise Exception("Не удалось завершить авторизацию")
+
+            # Переходим на страницу отчётов, если мы не на ней
+            current_url = self.driver.current_url
+            if "analytics-reports/sales" not in current_url:
+                logger.info("Переход на страницу отчётов после авторизации")
+                self.driver.get(self.settings.wildberries_start_url)
+                time.sleep(self.settings.delay_page_load)
+
+            logger.success("✓ Авторизация завершена")
+
         except Exception as e:
             logger.error(f"Ошибка при авторизации: {e}")
             logger.exception("Детали ошибки:")
-            return False
-    
-    def process_cabinet(self, cabinet: Dict[str, str]) -> bool:
-        """
-        Обработка одного кабинета
-        
+            raise
+
+    def wait_for_element(self, by: By, value: str, timeout: Optional[int] = None) -> None:
+        """Ожидание появления элемента на странице.
+
         Args:
-            cabinet: Словарь с данными кабинета {"name": "...", "id": "..."}
-            
+            by: Тип селектора (By.ID, By.CLASS_NAME и т.д.)
+            value: Значение селектора
+            timeout: Таймаут ожидания (по умолчанию из настроек)
+        """
+        timeout = timeout or self.settings.element_wait_timeout
+        try:
+            WebDriverWait(self.driver, timeout).until(
+                EC.presence_of_element_located((by, value))
+            )
+        except TimeoutException:
+            logger.error(f"Элемент не найден: {by}={value}")
+            raise
+
+    def click_element(self, by: By, value: str, scroll: bool = True) -> None:
+        """Клик по элементу.
+
+        Args:
+            by: Тип селектора
+            value: Значение селектора
+            scroll: Прокрутить страницу к элементу перед кликом
+        """
+        try:
+            time.sleep(self.settings.delay_before_click)
+            element = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                EC.element_to_be_clickable((by, value))
+            )
+
+            if scroll:
+                self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
+                time.sleep(0.5)
+
+            element.click()
+            time.sleep(self.settings.delay_after_click)
+            logger.debug(f"Клик по элементу: {by}={value}")
+
+        except Exception as e:
+            logger.error(f"Ошибка при клике по элементу {by}={value}: {e}")
+            raise
+
+    def fill_input(self, by: By, value: str, text: str, clear: bool = True, scroll: bool = True) -> None:
+        """Заполнение поля ввода.
+
+        Args:
+            by: Тип селектора
+            value: Значение селектора
+            text: Текст для ввода
+            clear: Очистить поле перед вводом
+            scroll: Прокрутить страницу к элементу перед вводом
+        """
+        try:
+            time.sleep(self.settings.delay_before_type)
+            element = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                EC.presence_of_element_located((by, value))
+            )
+
+            if scroll:
+                self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
+                time.sleep(0.5)
+
+            if clear:
+                element.clear()
+                time.sleep(0.3)
+
+            # Посимвольный ввод для имитации человеческого поведения
+            for char in text:
+                element.send_keys(char)
+                time.sleep(self.settings.delay_between_keys)
+
+            time.sleep(self.settings.delay_after_type)
+            logger.debug(f"Заполнено поле {by}={value}: {text}")
+
+        except Exception as e:
+            logger.error(f"Ошибка при заполнении поля {by}={value}: {e}")
+            raise
+
+    def process_cabinet(self, cabinet: Dict[str, str]) -> Optional[Path]:
+        """Обработка одного кабинета.
+
+        Args:
+            cabinet: Словарь с информацией о кабинете (name, id)
+
         Returns:
-            True если успешно, False при ошибке
+            Путь к обработанному файлу или None в случае ошибки
         """
         cabinet_name = cabinet["name"]
         cabinet_id = cabinet["id"]
-        
-        logger.info(f"{'='*60}")
-        logger.info(f"Обработка кабинета: {cabinet_name} (ID: {cabinet_id})")
-        logger.info(f"{'='*60}")
-        
+        today = datetime.now()
+        yesterday = today - timedelta(days=1)
+        date_str = today.strftime("%d.%m.%Y")
+        yesterday_str = yesterday.strftime("%d.%m.%Y")
+
+        logger.info(f"Начало обработки кабинета: {cabinet_name} (ID: {cabinet_id})")
+
         try:
-            # Шаг 2.1: Ввод ID кабинета
-            logger.info("Шаг 2.1: Ввод ID кабинета")
-            time.sleep(self.settings.delay_between_actions)
-            
-            if not self.fill_input(
-                By.ID, 
-                "suppliers-search", 
-                cabinet_id,
-                description=f"Поле поиска кабинета ({cabinet_name})"
-            ):
-                logger.error(f"Не удалось ввести ID кабинета {cabinet_name}")
-                return False
-            
-            # Задержка для поиска и загрузки результатов
-            time.sleep(self.settings.delay_between_actions)
-            
-            # Шаг 2.2: Настройка периода отчёта
-            logger.info("Шаг 2.2: Настройка периода отчёта")
-            time.sleep(self.settings.delay_between_actions)
-            
-            # Клик по кнопке календаря
-            calendar_button = self.wait_for_clickable(
-                By.CSS_SELECTOR,
-                "button.Date-input__icon-button__WnbzIWQzsq",
-                timeout=10
-            )
-            if not calendar_button:
-                logger.error("Не удалось найти кнопку календаря")
-                return False
-            
-            time.sleep(self.settings.delay_before_click)
-            calendar_button.click()
-            time.sleep(self.settings.delay_after_click)
-            time.sleep(self.settings.delay_between_actions)
-            
-            # Вчерашняя дата в формате DD.MM.YYYY
-            yesterday = (datetime.now() - timedelta(days=1)).strftime("%d.%m.%Y")
-            
-            # Заполнение поля начала периода
-            start_date_element = self.wait_for_element(By.ID, "startDate", timeout=10)
-            if not start_date_element:
-                logger.error("Не удалось найти поле startDate")
-                return False
-            
-            time.sleep(self.settings.delay_before_type)
-            start_date_element.clear()
-            time.sleep(0.3)
-            for char in yesterday:
-                start_date_element.send_keys(char)
-                time.sleep(random.uniform(0.05, self.settings.delay_between_keys))
-            time.sleep(self.settings.delay_after_type)
-            time.sleep(self.settings.delay_between_actions)
-            
-            # Заполнение поля окончания периода
-            end_date_element = self.wait_for_element(By.ID, "endDate", timeout=10)
-            if not end_date_element:
-                logger.error("Не удалось найти поле endDate")
-                return False
-            
-            time.sleep(self.settings.delay_before_type)
-            end_date_element.clear()
-            time.sleep(0.3)
-            for char in yesterday:
-                end_date_element.send_keys(char)
-                time.sleep(random.uniform(0.05, self.settings.delay_between_keys))
-            time.sleep(self.settings.delay_after_type)
-            
-            # Клик по кнопке "Сохранить"
-            save_button = self.wait_for_clickable(
-                By.CSS_SELECTOR,
-                "button.Button-link--main__bEAy5pip1O[type='submit']",
-                timeout=10
-            )
-            if not save_button:
-                logger.error("Не удалось найти кнопку 'Сохранить'")
-                return False
-            
-            time.sleep(self.settings.delay_before_click)
-            save_button.click()
-            logger.info("✓ Период сохранён")
-            time.sleep(self.settings.delay_after_click)
-            time.sleep(self.settings.delay_between_actions)
-            
-            # Шаг 2.3: Выгрузка отчёта
-            logger.info("Шаг 2.3: Выгрузка отчёта")
-            time.sleep(3)  # Ожидание после сохранения периода (как указано в алгоритме)
-            time.sleep(self.settings.delay_between_actions)
-            
-            # Запоминаем время перед скачиванием для поиска нового файла
-            files_before = set(self.downloads_dir.glob("*.xlsx"))
-            files_before_time = {f: f.stat().st_mtime for f in files_before}
-            
-            # Клик по кнопке "Выгрузить в Excel"
-            # Используем XPath так как CSS :has() может не поддерживаться
-            download_button = self.wait_for_clickable(
-                By.XPATH,
-                "//button[.//span[contains(text(), 'Выгрузить в Excel')]]",
-                timeout=10
-            )
-            
-            # Альтернативный селектор по классу
-            if not download_button:
-                download_button = self.wait_for_clickable(
-                    By.CSS_SELECTOR,
-                    "button.Button-link__1abzU3JUeb.Button-link--button-big__Bi4mHiOkNS",
-                    timeout=10
+            # Шаг 2.1: Раскрытие меню выбора кабинетов
+            logger.info("Шаг 2.1: Раскрытие меню выбора кабинетов")
+            try:
+                # Ищем кнопку с именем пользователя/кабинета (содержит стрелку вниз)
+                # Используем data-testid для надёжности
+                dropdown_button = WebDriverWait(self.driver, 5).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="desktop-profile-select-button-chips-component"]'))
                 )
+                time.sleep(self.settings.delay_before_click)
+                dropdown_button.click()
+                time.sleep(self.settings.delay_after_click)
+                logger.success("✓ Меню выбора кабинетов раскрыто")
+            except TimeoutException:
+                logger.warning("⚠ Кнопка раскрытия меню не найдена, возможно меню уже раскрыто или у пользователя один кабинет")
             
-            if not download_button:
-                logger.error("Не удалось найти кнопку 'Выгрузить в Excel'")
-                return False
+            # Шаг 2.2: Ввод ID кабинета
+            logger.info(f"Шаг 2.2: Ввод ID кабинета {cabinet_id}")
+            # Небольшая задержка после раскрытия меню
+            time.sleep(1)
             
-            time.sleep(self.settings.delay_before_click)
+            self.fill_input(
+                By.ID,
+                "suppliers-search",
+                cabinet_id,
+                clear=True
+            )
+            time.sleep(2)  # Ожидание загрузки результатов поиска
+
+            # Шаг 2.3: Настройка периода отчёта
+            logger.info(f"Шаг 2.3: Настройка периода отчёта ({yesterday_str})")
+            self.click_element(By.CSS_SELECTOR, "button.Date-input__icon-button__WnbzIWQzsq")
+
+            # Ожидание появления календаря и полей ввода даты
+            try:
+                WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                    EC.presence_of_element_located((By.ID, "startDate"))
+                )
+                WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                    EC.presence_of_element_located((By.ID, "endDate"))
+                )
+            except TimeoutException:
+                logger.error("Поля ввода даты не найдены")
+                raise
+
+            time.sleep(0.5)
+
+            # Заполнение поля начала периода
+            start_date_input = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                EC.element_to_be_clickable((By.ID, "startDate"))
+            )
+            time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
+            start_date_input.click()
+            time.sleep(self.settings.delay_after_click)  # Задержка после клика
+            start_date_input.clear()
+            time.sleep(0.5)
+            for char in yesterday_str:
+                start_date_input.send_keys(char)
+                time.sleep(self.settings.delay_between_keys)
+
+            # Заполнение поля окончания периода
+            end_date_input = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                EC.element_to_be_clickable((By.ID, "endDate"))
+            )
+            time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
+            end_date_input.click()
+            time.sleep(self.settings.delay_after_click)  # Задержка после клика
+            end_date_input.clear()
+            time.sleep(0.5)
+            for char in yesterday_str:
+                end_date_input.send_keys(char)
+                time.sleep(self.settings.delay_between_keys)
+
+            # Нажатие кнопки "Сохранить"
+            # Используем более точный селектор с текстом "Сохранить"
+            save_button = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[@type='submit' and .//span[text()='Сохранить']]"))
+            )
+            time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
+            save_button.click()
+            time.sleep(self.settings.delay_after_click)  # Задержка после клика
+            logger.success("✓ Период сохранён")
+
+            # Шаг 2.4: Выгрузка отчёта
+            logger.info("Шаг 2.4: Выгрузка отчёта в Excel")
+            time.sleep(3)  # Ожидание после сохранения периода
+
+            # Поиск кнопки "Выгрузить в Excel"
+            download_button = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[.//span[text()='Выгрузить в Excel']]"))
+            )
+            time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
             download_button.click()
-            logger.info("✓ Клик по кнопке скачивания выполнен")
-            time.sleep(self.settings.delay_after_click)
-            
-            # Шаг 2.4: Ожидание скачивания файла
-            logger.info("Шаг 2.4: Ожидание скачивания файла")
-            downloaded_file = self._wait_for_download(timeout=60)
-            
+            time.sleep(self.settings.delay_after_click)  # Задержка после клика
+            logger.success("✓ Запрос на выгрузку отправлен")
+
+            # Ожидание скачивания файла
+            downloaded_file = self._wait_for_downloaded_file()
             if not downloaded_file:
-                logger.error(f"Файл не был скачан для кабинета {cabinet_name}")
-                return False
-            
-            logger.success(f"✓ Файл скачан: {downloaded_file.name}")
-            
-            # Обработка файла
-            return self._process_downloaded_file(downloaded_file, cabinet_name, yesterday)
-            
+                logger.error("Файл не был скачан")
+                return None
+
+            # Шаг 2.4: Обработка скачанного файла
+            logger.info("Шаг 2.4: Обработка скачанного файла")
+            processed_file = self._process_downloaded_file(downloaded_file, cabinet_name, date_str)
+            if not processed_file:
+                logger.error("Ошибка при обработке файла")
+                return None
+
+            # Шаг 2.5: Создание резервной копии
+            logger.info("Шаг 2.5: Создание резервной копии")
+            backup_file = self._create_backup(processed_file, cabinet_name, date_str)
+            if not backup_file:
+                logger.error("Ошибка при создании резервной копии")
+                return None
+
+            logger.success(f"✓ Кабинет {cabinet_name} успешно обработан")
+            return processed_file
+
         except Exception as e:
             logger.error(f"Ошибка при обработке кабинета {cabinet_name}: {e}")
             logger.exception("Детали ошибки:")
-            return False
-    
-    def _wait_for_download(self, timeout: int = 60) -> Optional[Path]:
-        """
-        Ожидание скачивания нового файла
-        
+            return None
+
+    def _wait_for_downloaded_file(self, timeout: int = 60) -> Optional[Path]:
+        """Ожидание скачивания файла.
+
         Args:
             timeout: Таймаут ожидания в секундах
-            
+
         Returns:
-            Path к скачанному файлу или None
+            Путь к скачанному файлу или None
         """
         start_time = time.time()
-        initial_files = {f.name: f.stat().st_mtime for f in self.downloads_dir.glob("*.xlsx")}
-        
-        logger.info("Ожидание скачивания файла...")
-        
         while time.time() - start_time < timeout:
-            # Получаем текущие файлы
-            current_files = list(self.downloads_dir.glob("*.xlsx"))
-            
-            # Ищем новые файлы или файлы с изменённым временем
-            for file in current_files:
+            # Ищем файлы .xlsx и .xls в папке downloads
+            for file_path in self.downloads_dir.glob("*.xlsx"):
+                # Проверяем, что файл не заблокирован (завершено скачивание)
                 try:
-                    file_name = file.name
-                    file_time = file.stat().st_mtime
-                    file_size = file.stat().st_size
-                    
-                    # Проверяем что файл новый или изменён
-                    is_new = file_name not in initial_files
-                    is_modified = file_name in initial_files and file_time > initial_files[file_name]
-                    
-                    if (is_new or is_modified) and file_size > 0:
-                        # Проверяем что файл не заблокирован (ещё скачивается)
-                        # Делаем несколько проверок размера с задержкой
-                        size1 = file.stat().st_size
-                        time.sleep(1)
-                        size2 = file.stat().st_size
-                        time.sleep(1)
-                        size3 = file.stat().st_size
-                        
-                        # Если размер не меняется - файл скачан
-                        if size1 == size2 == size3 and size1 > 0:
-                            logger.info(f"Найден новый файл: {file.name} (размер: {size1} байт)")
-                            return file
-                except (OSError, PermissionError) as e:
-                    # Файл может быть заблокирован, продолжаем ждать
-                    logger.debug(f"Файл {file.name} заблокирован, ожидание...")
-                    continue
-                except Exception as e:
-                    logger.debug(f"Ошибка при проверке файла {file.name}: {e}")
-                    continue
-            
+                    if file_path.stat().st_size > 0:
+                        # Проверяем, что файл не был изменён недавно (скачивание завершено)
+                        if time.time() - file_path.stat().st_mtime > 2:
+                            logger.success(f"✓ Файл скачан: {file_path.name}")
+                            return file_path
+                except Exception:
+                    pass
+
+            for file_path in self.downloads_dir.glob("*.xls"):
+                try:
+                    if file_path.stat().st_size > 0:
+                        if time.time() - file_path.stat().st_mtime > 2:
+                            logger.success(f"✓ Файл скачан: {file_path.name}")
+                            return file_path
+                except Exception:
+                    pass
+
             time.sleep(1)
-        
-        logger.error(f"Таймаут ожидания скачивания файла ({timeout}с)")
+
+        logger.error("Таймаут ожидания скачивания файла")
         return None
-    
+
     def _process_downloaded_file(
-        self, 
-        file_path: Path, 
-        cabinet_name: str, 
-        date_str: str
-    ) -> bool:
-        """
-        Обработка скачанного файла: переименование, замена первой строки, копирование
-        
+        self, file_path: Path, cabinet_name: str, date_str: str
+    ) -> Optional[Path]:
+        """Обработка скачанного файла: переименование и замена первой строки.
+
         Args:
             file_path: Путь к скачанному файлу
             cabinet_name: Название кабинета
             date_str: Дата в формате DD.MM.YYYY
-            
+
         Returns:
-            True если успешно, False при ошибке
+            Путь к обработанному файлу или None
         """
         try:
-            import pandas as pd
-            import openpyxl
-            import shutil
-            
-            logger.info(f"Обработка файла: {file_path.name}")
-            
-            # Шаг 1: Переименование файла
-            new_name = f"{cabinet_name.lower()}_{date_str}.xlsx"
+            # Новое имя файла
+            new_name = f"{cabinet_name} {date_str}.xlsx"
             new_path = self.downloads_dir / new_name
-            
+
+            # Если файл с таким именем уже существует, удаляем его
+            if new_path.exists() and file_path != new_path:
+                logger.warning(f"Файл {new_name} уже существует, будет перезаписан")
+                new_path.unlink()
+
+            # Переименование файла
             if file_path != new_path:
                 file_path.rename(new_path)
-                logger.info(f"✓ Файл переименован: {new_name}")
-                file_path = new_path
-            
-            # Шаг 2: Замена первой строки
-            logger.info("Замена первой строки из example_first_stroke.XLSX")
-            
-            # Загружаем шаблон первой строки
-            template_path = Path("example_first_stroke.XLSX")
-            if not template_path.exists():
-                logger.error(f"Файл шаблона не найден: {template_path}")
-                return False
-            
-            # Читаем первую строку из шаблона
-            template_df = pd.read_excel(template_path, nrows=1)
-            template_row = template_df.iloc[0].to_dict()
-            
-            # Читаем скачанный файл
-            df = pd.read_excel(file_path)
-            
-            # Удаляем первую строку
-            df = df.iloc[1:].reset_index(drop=True)
-            
-            # Создаём новую первую строку из шаблона
-            new_first_row = pd.DataFrame([template_row])
-            
-            # Объединяем: новая первая строка + остальные данные
-            df = pd.concat([new_first_row, df], ignore_index=True)
-            
-            # Сохраняем изменения
-            df.to_excel(file_path, index=False, engine='openpyxl')
-            logger.success("✓ Первая строка заменена")
-            
-            # Шаг 3: Создание резервной копии в data/
-            data_folder = self.data_dir / date_str
-            data_folder.mkdir(parents=True, exist_ok=True)
-            
-            backup_path = data_folder / new_name
-            shutil.copy2(file_path, backup_path)
-            logger.success(f"✓ Резервная копия создана: {backup_path}")
-            
-            return True
-            
+                logger.info(f"Файл переименован: {new_name}")
+
+            # Замена первой строки
+            logger.info("Замена первой строки в файле")
+            self._replace_first_row(new_path)
+
+            logger.success(f"✓ Файл обработан: {new_name}")
+            return new_path
+
         except Exception as e:
             logger.error(f"Ошибка при обработке файла: {e}")
             logger.exception("Детали ошибки:")
-            return False
-    
-    def execute_flow(self) -> bool:
-        """
-        Выполнение основного потока работы для всех кабинетов
-        
-        Returns:
-            True если все кабинеты обработаны успешно, False при ошибке
+            return None
+
+    def _replace_first_row(self, file_path: Path) -> None:
+        """Замена первой строки в Excel файле.
+
+        Args:
+            file_path: Путь к файлу
         """
         try:
-            logger.info("Начало выполнения основного потока")
+            # Загружаем файл с примером первой строки
+            if not self.example_first_stroke_path.exists():
+                logger.warning(f"Файл с примером первой строки не найден: {self.example_first_stroke_path}")
+                return
+
+            example_wb = load_workbook(self.example_first_stroke_path, read_only=True)
+            example_ws = example_wb.active
+            example_first_row = [cell.value for cell in example_ws[1]]
+
+            # Загружаем файл для обработки
+            wb = load_workbook(file_path)
+            ws = wb.active
+
+            # Удаляем первую строку
+            ws.delete_rows(1)
+
+            # Вставляем новую первую строку
+            ws.insert_rows(1)
+            for col_idx, value in enumerate(example_first_row, start=1):
+                ws.cell(row=1, column=col_idx, value=value)
+
+            # Сохраняем изменения
+            wb.save(file_path)
+            logger.success("✓ Первая строка заменена")
+
+        except Exception as e:
+            logger.error(f"Ошибка при замене первой строки: {e}")
+            logger.exception("Детали ошибки:")
+            raise
+
+    def _create_backup(self, file_path: Path, cabinet_name: str, date_str: str) -> Optional[Path]:
+        """Создание резервной копии файла в папке data.
+
+        Args:
+            file_path: Путь к исходному файлу
+            cabinet_name: Название кабинета
+            date_str: Дата в формате DD.MM.YYYY
+
+        Returns:
+            Путь к резервной копии или None
+        """
+        try:
+            # Создаём папку с датой
+            date_folder = self.data_dir / date_str
+            date_folder.mkdir(parents=True, exist_ok=True)
+
+            # Новое имя файла для резервной копии
+            backup_name = f"{cabinet_name.lower()}_{date_str}.xlsx"
+            backup_path = date_folder / backup_name
+
+            # Копируем файл
+            shutil.copy2(file_path, backup_path)
+            logger.success(f"✓ Резервная копия создана: {backup_path}")
+
+            return backup_path
+
+        except Exception as e:
+            logger.error(f"Ошибка при создании резервной копии: {e}")
+            logger.exception("Детали ошибки:")
+            return None
+
+    def execute_flow(self) -> None:
+        """Выполнение основного потока работы для всех кабинетов."""
+        try:
+            # Запуск браузера
+            self.start_browser()
             
-            # Шаг 1: Запуск браузера (БЕЗ закрытия существующих процессов Chrome)
-            logger.info("Шаг 1: Запуск браузера Chrome...")
-            logger.warning("⚠ ВАЖНО: Убедитесь, что Chrome НЕ запущен с профилем Profile 2!")
-            logger.warning("⚠ Если Chrome запущен - закройте его вручную перед запуском скрипта")
+            # Ждём стабилизации браузера
+            logger.info("Ожидание стабилизации браузера...")
+            time.sleep(2)
+            
+            # Открываем страницу Wildberries
+            logger.info(f"Открытие страницы {self.WILDBERRIES_REPORTS_URL}...")
+            self.driver.get(self.WILDBERRIES_REPORTS_URL)
+            
+            # Ждём загрузки страницы
+            logger.info("Ожидание загрузки страницы...")
+            time.sleep(self.settings.delay_page_load)
+            
+            # Проверяем, что страница загрузилась
             try:
-                self.start_browser()
-            except Exception as e:
-                logger.error(f"Критическая ошибка при запуске браузера: {e}")
-                logger.error("Возможные причины:")
-                logger.error("1. Chrome уже запущен с профилем Profile 2 - закройте его вручную")
-                logger.error("2. Профиль заблокирован - закройте все окна Chrome")
-                logger.error("3. Недостаточно прав доступа к профилю")
-                return False
-            
-            if not self.driver:
-                logger.error("Браузер не был запущен!")
-                return False
-            
-            # Шаг 2: Проверка что страница открыта (уже открыта в start_browser)
-            logger.info("Шаг 2: Проверка страницы...")
-            current_url = self.driver.current_url
-            logger.info(f"Текущий URL: {current_url}")
-            
-            # Если не на нужной странице - переходим
-            if "wildberries.ru" not in current_url or "analytics-reports/sales" not in current_url:
-                logger.warning("Не на странице отчётов, переходим...")
-                self.driver.get(self.settings.wildberries_start_url)
-                time.sleep(5)
-                WebDriverWait(self.driver, 20).until(
+                WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
                     lambda d: d.execute_script("return document.readyState") == "complete"
                 )
-                logger.success("✓ Страница загружена")
-            
-            # Шаг 3: Проверка и авторизация (если требуется)
-            if not self.check_session():
-                logger.warning("⚠ Требуется авторизация")
+                current_url = self.driver.current_url
+                logger.success(f"✓ Страница загружена: {current_url}")
                 
-                # Пробуем автоматическую авторизацию
-                if self.settings.phone_number or self.settings.email:
-                    logger.info("Попытка автоматической авторизации...")
-                    if self.handle_authorization():
-                        logger.success("✓ Авторизация успешна")
-                        # Проверяем снова после авторизации
-                        time.sleep(3)
-                        if not self.check_session():
-                            logger.error("❌ Авторизация не прошла проверку")
-                            return False
-                    else:
-                        logger.error("❌ Авторизация не удалась")
-                        logger.error("Пожалуйста, авторизуйтесь вручную в браузере и запустите скрипт снова")
-                        logger.info("Ожидание 60 секунд для ручной авторизации...")
-                        time.sleep(60)
-                        # Проверяем снова после ожидания
-                        if not self.check_session():
-                            return False
+                # Проверяем, что мы на правильной странице
+                if "seller.wildberries.ru" not in current_url:
+                    logger.warning(f"Открылась не та страница: {current_url}")
+                    logger.info("Открываем нужную страницу...")
+                    self.driver.get(self.settings.wildberries_start_url)
+                    time.sleep(self.settings.delay_page_load)
                 else:
-                    logger.error("❌ Данные для авторизации не указаны в .env")
-                    logger.error("Добавьте PHONE_NUMBER или EMAIL и PASSWORD в .env файл")
-                    logger.info("Ожидание 60 секунд для ручной авторизации...")
-                    time.sleep(60)
-                    # Проверяем снова после ожидания
-                    if not self.check_session():
-                        return False
-            
-            # Шаг 4: Обработка каждого кабинета
+                    # Проверка авторизации
+                    logger.info("=" * 60)
+                    logger.info("Проверка статуса авторизации...")
+                    logger.info("=" * 60)
+                    
+                    if self._check_authorization_required():
+                        logger.info("=" * 60)
+                        logger.info("ТРЕБУЕТСЯ АВТОРИЗАЦИЯ")
+                        logger.info("Начинаем процесс авторизации...")
+                        logger.info("=" * 60)
+                        self._perform_authorization()
+                    else:
+                        logger.info("=" * 60)
+                        logger.success("✓ АВТОРИЗАЦИЯ УЖЕ ВЫПОЛНЕНА")
+                        logger.info("Пропускаем этап авторизации")
+                        logger.info("=" * 60)
+                    
+                    # Проверка, что мы на странице отчётов
+                    # Проверяем наличие характерных элементов страницы (кнопки календаря или поля поиска)
+                    page_loaded = False
+                    try:
+                        # Вариант 1: Есть поле поиска кабинетов (для пользователей с несколькими кабинетами)
+                        WebDriverWait(self.driver, 5).until(
+                            EC.presence_of_element_located((By.ID, "suppliers-search"))
+                        )
+                        logger.success("✓ Страница отчётов загружена (найдено поле поиска кабинетов)")
+                        page_loaded = True
+                    except TimeoutException:
+                        # Вариант 2: Проверяем наличие кнопки календаря (есть у всех)
+                        try:
+                            WebDriverWait(self.driver, 5).until(
+                                EC.presence_of_element_located((By.CSS_SELECTOR, 'button.Date-input__icon-button__WnbzIWQzsq'))
+                            )
+                            logger.success("✓ Страница отчётов загружена (найдена кнопка календаря)")
+                            page_loaded = True
+                        except TimeoutException:
+                            # Вариант 3: Проверяем наличие заголовка "Продажи"
+                            try:
+                                WebDriverWait(self.driver, 5).until(
+                                    EC.presence_of_element_located((By.XPATH, "//span[text()='Продажи']"))
+                                )
+                                logger.success("✓ Страница отчётов загружена (найден заголовок 'Продажи')")
+                                page_loaded = True
+                            except TimeoutException:
+                                pass
+                    
+                    if not page_loaded:
+                        logger.warning("⚠ Не удалось найти характерные элементы страницы отчётов")
+                        logger.warning("Возможно требуется дополнительная авторизация или страница загружается медленно")
+                        # Просто обновляем страницу, не открываем новую
+                        logger.info("Обновление страницы...")
+                        self.driver.refresh()
+                        time.sleep(self.settings.delay_page_load)
+                        
+            except Exception as e:
+                logger.error(f"Ошибка при проверке загрузки страницы: {e}")
+                # Просто обновляем страницу, не открываем новую
+                logger.info("Обновление страницы...")
+                self.driver.refresh()
+                time.sleep(self.settings.delay_page_load)
+
+            # Раскрытие меню выбора кабинетов на главной странице
+            logger.info("Раскрытие меню выбора кабинетов на главной странице...")
+            try:
+                # Ищем кнопку с именем пользователя/кабинета для раскрытия меню
+                profile_button = WebDriverWait(self.driver, 10).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="desktop-profile-select-button-chips-component"]'))
+                )
+                time.sleep(self.settings.delay_before_click)
+                profile_button.click()
+                time.sleep(self.settings.delay_after_click)
+                logger.success("✓ Меню выбора кабинетов раскрыто на главной странице")
+            except TimeoutException:
+                logger.warning("⚠ Кнопка раскрытия меню не найдена, возможно меню уже раскрыто или у пользователя один кабинет")
+            except Exception as e:
+                logger.warning(f"⚠ Ошибка при раскрытии меню: {e}, продолжаем работу...")
+
+            # Обработка каждого кабинета
             for cabinet in self.CABINETS:
-                if not self.process_cabinet(cabinet):
-                    logger.error(f"Ошибка при обработке кабинета {cabinet['name']}")
-                    logger.error("Остановка выполнения")
-                    return False
-                
-                # Возврат на стартовую страницу перед следующим кабинетом
-                if cabinet != self.CABINETS[-1]:  # Не для последнего кабинета
-                    logger.info("Возврат на стартовую страницу для следующего кабинета")
-                    if not self.navigate_to_url(self.settings.wildberries_start_url):
-                        logger.error("Не удалось вернуться на стартовую страницу")
-                        return False
-            
-            logger.success("✓ Все кабинеты успешно обработаны!")
-            return True
-            
+                try:
+                    # Обработка кабинета
+                    result = self.process_cabinet(cabinet)
+
+                    if result:
+                        logger.success(f"✓ Кабинет {cabinet['name']} обработан успешно")
+                    else:
+                        logger.error(f"✗ Ошибка при обработке кабинета {cabinet['name']}")
+
+                    # Возврат на стартовую страницу для следующего кабинета
+                    if cabinet != self.CABINETS[-1]:  # Не возвращаемся после последнего кабинета
+                        logger.info("Возврат на стартовую страницу")
+                        self.driver.get(self.settings.wildberries_start_url)
+                        time.sleep(self.settings.delay_between_actions)
+
+                except Exception as e:
+                    logger.error(f"Критическая ошибка при обработке кабинета {cabinet['name']}: {e}")
+                    logger.exception("Детали ошибки:")
+                    continue
+
+            logger.success("✓ Все кабинеты обработаны")
+
         except Exception as e:
-            logger.error(f"Критическая ошибка в основном потоке: {e}")
+            logger.error(f"Критическая ошибка в процессе выполнения: {e}")
             logger.exception("Детали ошибки:")
-            return False
-        
+            raise
+
         finally:
             # Закрытие браузера
-            if self.driver:
-                logger.info("Закрытие браузера")
-                self.driver.quit()
-
-
+            self.close_browser()

@@ -33,39 +33,327 @@
 - `data/` - данные (не коммитить в git)
 - `logs/` - логи (не коммитить в git)
 
-## Работа с ИИ-агентами
-- Каждый агент должен быть в отдельном модуле
-- Агенты должны быть независимыми и переиспользуемыми
-- Использовать async/await для асинхронных операций
-- Обрабатывать ошибки gracefully с логированием
-- Использовать dependency injection для конфигурации
+## Работа с браузерной автоматизацией
 
-## Работа с API Wildberries
+**КРИТИЧНО:** Проект использует браузерную автоматизацию (Selenium/undetected-chromedriver) для работы с Wildberries Seller Portal.
 
-**КРИТИЧНО:** 
-- `/api/v1/supplier/sales` - **НЕПОДХОДЯЩИЙ** эндпоинт для получения детализированных отчётов
-- Этот эндпоинт возвращает только базовые данные о продажах без детализации (бренд, предмет, склад и т.д.)
-- НЕ использовать этот эндпоинт как основной источник данных для отчётов
+**Основные принципы:**
+- Использовать `undetected-chromedriver` для обхода детекции автоматизации
+- Поддерживать Chrome и Yandex Browser через профили
+- Все действия должны имитировать человеческое поведение (задержки, посимвольный ввод)
+- После запуска браузера ОБЯЗАТЕЛЬНО ждать стабилизации перед открытием страниц
+- После открытия страницы ОБЯЗАТЕЛЬНО ждать полной загрузки (document.readyState === 'complete')
+- Все селекторы элементов должны быть надёжными (ID, data-testid предпочтительнее классов)
 
-**Правильные подходы (в порядке приоритета):**
+**Работа с профилями браузера:**
+- Профили Yandex Browser настраиваются через .env файл
+- **КРИТИЧНО**: НЕ использовать профиль "Default" - файл Preferences может быть повреждён (json.decoder.JSONDecodeError)
+- Создавать отдельный профиль для автоматизации (например, "WB_Automation")
+- Профиль создаётся автоматически при первом запуске, если не существует
+- Профиль должен содержать сохранённую авторизацию в Wildberries
+- Пути к профилям должны расширять переменные окружения Windows (%LOCALAPPDATA%)
 
-1. **Приоритет 1:** Использовать `/api/v2/nm-report/downloads` (seller-analytics-api) для создания отчёта
-   - Метод: `POST https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads`
-   - Создаёт задание на генерацию отчёта с расширенной аналитикой
-   - Тип отчёта `STOCK_HISTORY_REPORT_CSV` доступен без подписки Джем
-   - Затем получить отчёт через `GET /api/v2/nm-report/downloads/file/{downloadId}`
-   - Отчёт приходит в ZIP архиве в формате CSV
+**КРИТИЧНО - Запуск Yandex Browser с undetected-chromedriver:**
 
-2. **Приоритет 2 (fallback):** Собирать данные по кусочкам из разных эндпоинтов
-   - Если `/api/v2/nm-report/downloads` не даёт нужную структуру
-   - Объединять данные из разных API для получения всех нужных полей
-   - Всегда проверять соответствие структуры данных `example_parse.xlsx`
+**РАБОЧАЯ КОНФИГУРАЦИЯ (проверено 09.12.2025):**
 
-**Общие правила:**
-- Все API ключи и секреты должны быть в переменных окружения
-- Использовать retry логику для нестабильных API
-- Логировать все запросы и ответы (без чувствительных данных)
-- Использовать rate limiting где необходимо
+**Обязательные параметры:**
+```python
+self.driver = uc.Chrome(
+    options=options,
+    browser_executable_path=str(browser_path),
+    version_main=140  # КРИТИЧНО: Явно указывать версию для Yandex Browser 140!
+)
+# НЕ добавлять use_subprocess, headless и другие параметры!
+```
+
+**Обязательные опции браузера:**
+```python
+# 1. Профиль (обязательно для сохранения авторизации)
+options.add_argument(f'--user-data-dir={путь_к_user_data}')
+options.add_argument(f'--profile-directory={имя_профиля}')
+
+# 2. Настройки скачивания (через prefs)
+prefs = {
+    "download.default_directory": str(путь_для_скачивания),
+    "download.prompt_for_download": False,
+    "download.directory_upgrade": True,
+    "safebrowsing.enabled": True,
+    "profile.default_content_setting_values.automatic_downloads": 1,
+}
+options.add_experimental_option("prefs", prefs)
+
+# 3. Минимум опций для работы
+options.add_argument("--disable-blink-features=AutomationControlled")  # Обход детекции
+options.add_argument("--start-maximized")  # Развернуть окно
+```
+
+**Что НЕЛЬЗЯ добавлять (вызывает зависание):**
+- ❌ `--disable-gpu`
+- ❌ `--ignore-certificate-errors`
+- ❌ `--disable-features=LockProfileCookieDatabase`
+- ❌ `--disable-session-crashed-bubble`
+- ❌ `--disable-infobars`
+- ❌ `--disable-notifications`
+- ❌ `use_subprocess=False`
+- ❌ `headless=False`
+
+**Корень проблемы зависания:**
+- Избыточные опции браузера в комбинации с профилем
+- Время запуска: 3 секунды с минимальными опциями, 100+ секунд с избыточными
+
+**КРИТИЧНО - Открытие страницы при запуске браузера:**
+
+### Проблема:
+Браузер запускается, но сразу закрывается с ошибками:
+- `session deleted as the browser has closed the connection`
+- `no such window: target window already closed`
+- `invalid session id`
+- Браузер открывается → страница не открывается → браузер закрывается
+
+### Причина:
+1. Опции `--app=URL` и `--new-window` КОНФЛИКТУЮТ с профилем браузера
+2. Это вызывает ошибку `cannot connect to chrome` и зависание на 100+ секунд
+3. ChromeDriver не может подключиться к браузеру из-за конфликта опций
+4. Вызов `driver.get()` ВНУТРИ метода запуска вызывает инвалидацию сессии
+5. Проверка `window_handles` сразу после запуска приводит к закрытию браузера
+
+### Решение (ВСЕГДА использовать этот подход):
+
+**Шаг 1:** В методах `_start_chrome_browser()` и `_start_yandex_browser()` добавить опции ПЕРЕД запуском драйвера:
+```python
+# Убираем признаки автоматизации
+options.add_argument("--disable-blink-features=AutomationControlled")
+
+# ↓↓↓ ДОБАВИТЬ ЭТИ СТРОКИ ↓↓↓
+# Запускаем браузер развёрнутым на весь экран
+options.add_argument("--start-maximized")
+
+# Отключаем уведомления
+options.add_argument("--disable-notifications")
+# ↑↑↑ КОНЕЦ ДОБАВЛЕНИЯ ↑↑↑
+
+# Запускаем браузер
+logger.info("Запуск браузера...")
+
+# Для Chrome:
+self.driver = uc.Chrome(options=options)
+
+# Для Yandex:
+self.driver = uc.Chrome(
+    options=options,
+    version_main=browser_version,
+    browser_executable_path=str(browser_path)
+)
+
+logger.success("✓ Браузер запущен")
+# НЕ ВЫЗЫВАТЬ driver.get() ЗДЕСЬ!
+```
+
+**Шаг 2:** В `execute_flow()` добавить код после `start_browser()`:
+```python
+def execute_flow(self) -> None:
+    try:
+        # Запуск браузера
+        self.start_browser()
+        
+        # Ждём стабилизации браузера
+        logger.info("Ожидание стабилизации браузера...")
+        time.sleep(2)
+        
+        # Открываем страницу Wildberries
+        logger.info(f"Открытие страницы {self.WILDBERRIES_REPORTS_URL}...")
+        self.driver.get(self.WILDBERRIES_REPORTS_URL)
+        
+        # Ждём загрузки страницы
+        logger.info("Ожидание загрузки страницы...")
+        time.sleep(self.settings.delay_page_load)
+        
+        # Проверяем авторизацию и начинаем работу...
+```
+
+**Шаг 3:** УБРАТЬ из методов запуска браузера:
+- ❌ `self.driver.get(URL)` сразу после создания драйвера
+- ❌ `options.add_argument("--app=URL")` — конфликтует с профилем
+- ❌ `options.add_argument("--new-window")` — конфликтует с профилем
+- ❌ `self.driver.window_handles` проверки сразу после запуска
+- ❌ `self.driver.switch_to.window()` сразу после запуска
+
+### Как диагностировать проблему:
+Если в логах видите:
+```
+✓ Браузер Yandex запущен
+Открытие страницы https://...
+ERROR: session deleted as the browser has closed the connection
+```
+Значит проблема в том, что `driver.get()` вызывается ПОСЛЕ создания драйвера.
+
+### Проверка решения:
+После исправления в логах должно быть:
+```
+Запуск браузера Yandex...
+✓ Браузер Yandex запущен
+Ожидание загрузки страницы Wildberries...
+✓ Страница загружена: https://seller.wildberries.ru/...
+```
+БЕЗ строк "Открытие страницы..." между запуском и загрузкой.
+
+### История проблемы и решений:
+1. **Попытка 1 (НЕ сработала):** Вызов `driver.get()` после создания драйвера в методе запуска
+   - Результат: `session deleted as the browser has closed the connection`
+   
+2. **Попытка 2 (НЕ сработала):** Добавление задержек и проверки `window_handles`
+   - Результат: `no such window: target window already closed`
+   
+3. **Попытка 3 (НЕ сработала):** Использование `--no-startup-window` и `--homepage=about:blank`
+   - Результат: `session not created: cannot connect to chrome`
+   
+4. **Попытка 4 (НЕ сработала):** Добавление `--new-window` без `--app`
+   - Результат: Открывается окно, но потом закрывается
+   
+5. **Попытка 5 (НЕ сработала):** Использование `--new-window` + `--app=URL` вместе
+   - Результат: ⚠ Зависает на 100+ секунд, `cannot connect to chrome`
+   
+6. **Попытка 6 (НЕ сработала):** Использование ТОЛЬКО `--app=URL` БЕЗ `--new-window`
+   - Результат: ⚠ Зависает на 100+ секунд, `cannot connect to chrome`
+   
+7. **Попытка 7 (СРАБОТАЛА!):** БЕЗ `--app=URL`, БЕЗ `--new-window`, `driver.get()` в `execute_flow()`
+   - Результат: ✅ Браузер запускается быстро и стабильно
+
+**ВЫВОД:** НЕ использовать `--app=URL` и `--new-window`! Вызывать `driver.get()` в `execute_flow()` после задержки 2 сек!
+
+**Быстрый чеклист при ошибках запуска браузера:**
+```
+□ Есть ли options.add_argument("--start-maximized")?
+□ Есть ли options.add_argument("--disable-notifications")?
+□ НЕТ ли options.add_argument("--app=URL")? (должно ОТСУТСТВОВАТЬ!)
+□ НЕТ ли options.add_argument("--new-window")? (должно ОТСУТСТВОВАТЬ!)
+□ НЕТ ли driver.get() ВНУТРИ методов _start_chrome/yandex_browser()?
+□ ЕСТЬ ли driver.get() В execute_flow() ПОСЛЕ time.sleep(2)?
+□ НЕТ ли window_handles проверки сразу после запуска?
+```
+Если хотя бы один пункт НЕ выполнен → браузер будет закрываться или зависать!
+
+### Инструкция по отладке (если проблема возникла снова):
+
+**Шаг 1: Проверьте логи на наличие этих строк:**
+```
+✓ Браузер Yandex запущен
+Открытие страницы https://...        ← ❌ ПЛОХО! Не должно быть!
+ERROR: session deleted...
+```
+Если есть строка "Открытие страницы..." ПОСЛЕ "Браузер запущен" → проблема!
+
+**Шаг 2: Проверьте код в `_start_yandex_browser()` / `_start_chrome_browser()`:**
+```python
+# ДОЛЖНО быть ТАК:
+options.add_argument("--new-window")
+options.add_argument(f"--app={self.WILDBERRIES_REPORTS_URL}")
+self.driver = uc.Chrome(options=options, version_main=140)
+# И ВСЁ! Никаких driver.get() дальше!
+```
+
+**Шаг 3: Проверьте код в `execute_flow()`:**
+```python
+# ДОЛЖНО быть ТАК:
+self.start_browser()
+time.sleep(self.settings.delay_page_load)
+# Проверка авторизации...
+# НЕ ДОЛЖНО БЫТЬ:
+# - driver.get()
+# - window_handles
+# - switch_to.window()
+```
+
+**Шаг 4: Если всё правильно, но не работает:**
+- Закройте все окна браузера вручную
+- Перезапустите скрипт
+- Проверьте версию `undetected-chromedriver` (должна быть актуальной)
+- Проверьте, что профиль браузера существует и доступен
+
+**Шаг 5: Если проблема повторяется:**
+- Верните код к последнему рабочему коммиту
+- Примените исправления из этого раздела заново
+- НЕ экспериментируйте с другими подходами — только `--app=URL` работает стабильно!
+
+**Примеры кода:**
+
+❌ **НЕПРАВИЛЬНО (браузер зависнет на 100+ секунд):**
+```python
+def _start_yandex_browser(self):
+    options = uc.ChromeOptions()
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    
+    # ❌ НЕ ТАК! --app=URL конфликтует с профилем
+    options.add_argument(f"--app={self.WILDBERRIES_REPORTS_URL}")
+    
+    # ❌ НЕ ТАК! --new-window конфликтует с профилем
+    options.add_argument("--new-window")
+    
+    # Запуск - будет зависать!
+    self.driver = uc.Chrome(options=options, version_main=140)
+    
+    # ❌ НЕ ТАК! driver.get() внутри метода запуска
+    self.driver.get(self.WILDBERRIES_REPORTS_URL)
+
+def execute_flow(self):
+    self.start_browser()
+    
+    # ❌ НЕ ТАК! Проверка window_handles
+    windows = self.driver.window_handles
+    self.driver.switch_to.window(windows[-1])
+    
+    # ❌ НЕ ТАК! Еще один driver.get()
+    self.driver.get(URL)
+```
+
+✅ **ПРАВИЛЬНО (браузер работает стабильно):**
+```python
+def _start_yandex_browser(self):
+    options = uc.ChromeOptions()
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    
+    # ✅ ТАК! БЕЗ --app и --new-window
+    options.add_argument("--start-maximized")
+    options.add_argument("--disable-notifications")
+    
+    # Запуск драйвера
+    self.driver = uc.Chrome(
+        options=options,
+        version_main=140,
+        browser_executable_path=str(browser_path)
+    )
+    
+    # ✅ ТАК! НЕ вызываем driver.get() здесь
+
+def execute_flow(self):
+    # Запуск браузера
+    self.start_browser()
+    
+    # ✅ ТАК! Ждём стабилизации 2 секунды
+    time.sleep(2)
+    
+    # ✅ ТАК! Открываем страницу ЗДЕСЬ, а не в методе запуска
+    self.driver.get(self.WILDBERRIES_REPORTS_URL)
+    
+    # Ждём загрузки
+    time.sleep(self.settings.delay_page_load)
+    
+    # Начинаем работу
+    self._check_authorization_required()
+```
+
+**Обработка ошибок:**
+- Все действия с браузером должны быть в try/except блоках
+- Логировать все ошибки с контекстом
+- При ошибках "window closed" - перезапускать браузер
+- При ошибках версии браузера - автоматически определять версию из ошибки
+
+**Задержки и ожидания:**
+- Использовать WebDriverWait вместо time.sleep() где возможно
+- Минимальные задержки между действиями: 1.5-2 секунды
+- После открытия страницы: минимум 4 секунды ожидания
+- Посимвольный ввод текста с задержкой 0.12 сек между символами
 
 ## Тестирование
 - Писать unit тесты для всех критичных функций

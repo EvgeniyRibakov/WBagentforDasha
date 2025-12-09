@@ -2,16 +2,13 @@
 1. Начало работы
 Перейдите на страницу: https://seller.wildberries.ru/analytics-reports/sales
 
-1.1. Проверка авторизации
-После открытия страницы проверьте, требуется ли авторизация:
-- Если открылась страница авторизации (есть поля для ввода телефона/email и пароля):
-  * Найдите поле ввода телефона/email (обычно это input с placeholder "Телефон" или "Email")
-  * Введите номер телефона или email
-  * Найдите поле ввода пароля (input с type="password")
-  * Введите пароль
-  * Найдите и нажмите кнопку "Войти" или "Вход" (обычно button с type="submit" или классом содержащим "login", "enter", "auth")
-  * Дождитесь завершения авторизации и перехода на страницу отчётов
-- Если страница отчётов открылась сразу (есть поле поиска по ИНН/ID кабинетов) - авторизация не требуется, продолжайте работу
+Если вы увидели страницу в которой есть <input autocomplete="off" class="SimpleInput-JIIQvb037j SimpleInput--color-RichGreyNew-gIQvvmR+FY" data-testid="phone-input" inputmode="numeric" placeholder="999 999-99-99" type="text" value="">
+значит вы не авторизованы. 
+Поэтому нажмите на кнопку <input autocomplete="off" class="SimpleInput-JIIQvb037j SimpleInput--color-RichGreyNew-gIQvvmR+FY" data-testid="phone-input" inputmode="numeric" placeholder="999 999-99-99" type="text" value="">
+со страницы pages_code\first_number_page.html и вставьте номер из .env файла PHONE_NUMBER= и после вставки нажми на <img alt="" class="FormPhoneInputBorderless__image-5k2LEXofCa" src="https://static-basket-02.wbbasket.ru/vol20/seller-auth-front/v1.80.0/static/media/arrow-circle-right.9fe3d0a69b284d74791c127ddea3414b.svg">
+после этого спроси в чате код авторизации, чтобы я ввёл его и ты вставил в <div class="FormTextInput__input-f6fPmoYx4c"><input autocomplete="off" class="SimpleInput-JIIQvb037j SimpleInput--color-RichGreyNew-gIQvvmR+FY SimpleInput--centered-0t1Sgtf-zO" type="numeric" value=""></div>
+после этого надо снова уточнить код из 6 символов отправленных на почту и вставить полученный от меня код в <div class="FormTextInput__input-f6fPmoYx4c"><input autocomplete="off" class="SimpleInput-JIIQvb037j SimpleInput--color-RichGreyNew-gIQvvmR+FY SimpleInput--centered-0t1Sgtf-zO" type="numeric" value=""></div>
+и нажать на кнопку входа. И вот ты зашел в главный кабинет и можешь начинать работу
 
 1.2. Проверка успешной авторизации
 Убедитесь, что вы видите:
@@ -22,12 +19,25 @@
 2. Обработка каждого кабинета (последовательный алгоритм)
 ВАЖНО: Выполняйте полный цикл действий для каждого кабинета ОТДЕЛЬНО, прежде чем переходить к следующему.
 Алгоритм для одного кабинета:
-Шаг 2.1: Ввод ID кабинета
-Найдите поле ввода:
+Шаг 2.1: Раскрытие меню выбора кабинетов
+ВАЖНО: Перед вводом ID кабинета необходимо раскрыть выпадающее меню.
+Найдите и кликните на кнопку с именем пользователя/кабинета (содержит стрелку вниз):
+html
+<button class="chips_Chips__cXjGT chips_Chips--l__+9MAI chips_Chips--color-base-primary__cdhdD chips_Chips--color-base-primary-active__XigfX chips_Chips--trim__7ktrq chips_Chips--fullWidth__W17Ea Chips--semi chips_Chips--textWeight-bold__5s1wS" data-name="Chips" data-testid="desktop-profile-select-button-chips-component" type="button">
+  <div class="chips_Chips__text__qZG82 chips_Chips__text--trim__B80rR chips_Chips__text--textAlign-center__ZIpUT">Матвеев Андрей Юрьевич ИП</div>
+  <svg fill="none" height="24" viewBox="-3 -7 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+    <path clip-rule="evenodd" d="M16.293 0.292969L17.7072 1.70718L9.00008 10.4143L0.292969 1.70718L1.70718 0.292969L9.00008 7.58586L16.293 0.292969Z" fill="currentColor" fill-rule="evenodd"></path>
+  </svg>
+</button>
+
+После клика появится поле ввода для поиска кабинетов.
+
+Шаг 2.2: Ввод ID кабинета
+После раскрытия меню найдите поле ввода:
 html
 <input class="simple-input_Simple-input__field__9sh9N simple-input_Simple-input__field--isWithCustomIcon__OqKZT" id="suppliers-search" name="suppliers-search" placeholder="Поиск по ИНН, наименованию и ID" value="">
 Вставьте в это поле ID текущего кабинета (только один ID)
-Шаг 2.2: Настройка периода отчёта
+Шаг 2.3: Настройка периода отчёта
 Нажмите на кнопку календаря:
 html
 <button class="Date-input__icon-button__WnbzIWQzsq" type="button">...</button>
@@ -38,7 +48,7 @@ html
 <button class="Button-link__YPcDbilyau Button-link--full-width__HKaKs01M7C Button-link--text-center__p1f-0znXH6 Button-link--button__M-0nTjDTHF Button-link--main__bEAy5pip1O Button-link--button-big__z3J9T2QnNl" type="submit">
   <span class="Button-link__text">Сохранить</span>
 </button>
-Шаг 2.3: Выгрузка отчёта
+Шаг 2.4: Выгрузка отчёта
 Подождите 3 секунды после сохранения периода
 Нажмите кнопку выгрузки в Excel:
 html
