@@ -1,0 +1,572 @@
+2025-12-09 00:02:46 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 00:02:46 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 00:02:46 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 00:02:46 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 00:02:46 | INFO     | __main__:main:29 - Профиль Chrome: Profile 2
+2025-12-09 00:02:46 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 00:02:46 | INFO     | src.agents.browser_agent:execute_flow:742 - Начало выполнения основного потока
+2025-12-09 00:02:46 | INFO     | src.agents.browser_agent:execute_flow:745 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 00:02:46 | INFO     | src.agents.browser_agent:_kill_chrome_processes:58 - Закрытие всех процессов Chrome и ChromeDriver...
+2025-12-09 00:02:46 | INFO     | src.agents.browser_agent:_kill_chrome_processes:76 - Процессы Chrome не найдены
+2025-12-09 00:02:48 | INFO     | src.agents.browser_agent:start_browser:97 - Запуск Chrome через Selenium...
+2025-12-09 00:02:48 | INFO     | src.agents.browser_agent:start_browser:125 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 2
+2025-12-09 00:02:48 | SUCCESS  | src.agents.browser_agent:start_browser:129 - ✓ Профиль найден: C:\Users\fisher\AppData\Local\Google\Chrome\User Data\Profile 2
+2025-12-09 00:02:48 | INFO     | src.agents.browser_agent:start_browser:152 - Инициализация ChromeDriver...
+2025-12-09 00:02:53 | INFO     | src.agents.browser_agent:start_browser:155 - Запуск Chrome...
+2025-12-09 10:07:56 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 10:07:56 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 10:07:56 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 10:07:56 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 10:07:56 | INFO     | __main__:main:29 - Профиль Chrome: Profile 2
+2025-12-09 10:07:56 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 10:07:56 | INFO     | src.agents.browser_agent:execute_flow:742 - Начало выполнения основного потока
+2025-12-09 10:07:56 | INFO     | src.agents.browser_agent:execute_flow:745 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 10:07:56 | INFO     | src.agents.browser_agent:_kill_chrome_processes:58 - Закрытие всех процессов Chrome и ChromeDriver...
+2025-12-09 10:07:56 | INFO     | src.agents.browser_agent:_kill_chrome_processes:76 - Процессы Chrome не найдены
+2025-12-09 10:07:58 | INFO     | src.agents.browser_agent:start_browser:97 - Запуск Chrome через Selenium...
+2025-12-09 10:07:58 | INFO     | src.agents.browser_agent:start_browser:125 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 2
+2025-12-09 10:07:58 | SUCCESS  | src.agents.browser_agent:start_browser:129 - ✓ Профиль найден: C:\Users\fisher\AppData\Local\Google\Chrome\User Data\Profile 2
+2025-12-09 10:07:58 | INFO     | src.agents.browser_agent:start_browser:152 - Инициализация ChromeDriver...
+2025-12-09 10:08:04 | INFO     | src.agents.browser_agent:start_browser:155 - Запуск Chrome...
+2025-12-09 10:08:23 | ERROR    | src.agents.browser_agent:start_browser:210 - Ошибка запуска: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d4991
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:08:23 | ERROR    | src.agents.browser_agent:execute_flow:749 - Критическая ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d4991
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:08:23 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:08:23 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:08:23 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:18:19 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 10:18:19 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 10:18:19 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 10:18:19 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 10:18:19 | INFO     | __main__:main:29 - Профиль Chrome: Profile 4
+2025-12-09 10:18:19 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 10:18:19 | INFO     | src.agents.browser_agent:execute_flow:742 - Начало выполнения основного потока
+2025-12-09 10:18:19 | INFO     | src.agents.browser_agent:execute_flow:745 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 10:18:19 | INFO     | src.agents.browser_agent:_kill_chrome_processes:58 - Закрытие всех процессов Chrome и ChromeDriver...
+2025-12-09 10:18:19 | INFO     | src.agents.browser_agent:_kill_chrome_processes:76 - Процессы Chrome не найдены
+2025-12-09 10:18:21 | INFO     | src.agents.browser_agent:start_browser:97 - Запуск Chrome через Selenium...
+2025-12-09 10:18:21 | INFO     | src.agents.browser_agent:start_browser:125 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 4
+2025-12-09 10:18:21 | SUCCESS  | src.agents.browser_agent:start_browser:129 - ✓ Профиль найден: C:\Users\fisher\AppData\Local\Google\Chrome\User Data\Profile 4
+2025-12-09 10:18:21 | INFO     | src.agents.browser_agent:start_browser:152 - Инициализация ChromeDriver...
+2025-12-09 10:18:22 | INFO     | src.agents.browser_agent:start_browser:155 - Запуск Chrome...
+2025-12-09 10:19:25 | ERROR    | src.agents.browser_agent:start_browser:210 - Ошибка запуска: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:19:25 | ERROR    | src.agents.browser_agent:execute_flow:749 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:19:25 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:19:25 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:19:25 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:33:37 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 10:33:37 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 10:33:37 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 10:33:37 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 10:33:37 | INFO     | __main__:main:29 - Профиль Chrome: Profile 4
+2025-12-09 10:33:37 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 10:33:37 | INFO     | src.agents.browser_agent:execute_flow:700 - Начало выполнения основного потока
+2025-12-09 10:33:37 | INFO     | src.agents.browser_agent:execute_flow:703 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 10:33:37 | INFO     | src.agents.browser_agent:_kill_chrome_processes:58 - Закрытие всех процессов Chrome и ChromeDriver...
+2025-12-09 10:33:37 | INFO     | src.agents.browser_agent:_kill_chrome_processes:76 - Процессы Chrome не найдены
+2025-12-09 10:33:40 | INFO     | src.agents.browser_agent:start_browser:97 - Запуск Chrome...
+2025-12-09 10:33:40 | INFO     | src.agents.browser_agent:start_browser:114 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 4
+2025-12-09 10:33:40 | INFO     | src.agents.browser_agent:start_browser:128 - Инициализация ChromeDriver...
+2025-12-09 10:33:42 | INFO     | src.agents.browser_agent:start_browser:131 - Запуск Chrome (это может занять время)...
+2025-12-09 10:33:59 | ERROR    | src.agents.browser_agent:execute_flow:707 - Критическая ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d4991
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:33:59 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:33:59 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:33:59 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:34:19 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 10:34:19 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 10:34:19 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 10:34:19 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 10:34:19 | INFO     | __main__:main:29 - Профиль Chrome: Profile 4
+2025-12-09 10:34:19 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 10:34:19 | INFO     | src.agents.browser_agent:execute_flow:700 - Начало выполнения основного потока
+2025-12-09 10:34:19 | INFO     | src.agents.browser_agent:execute_flow:703 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 10:34:19 | INFO     | src.agents.browser_agent:_kill_chrome_processes:58 - Закрытие всех процессов Chrome и ChromeDriver...
+2025-12-09 10:34:19 | INFO     | src.agents.browser_agent:_kill_chrome_processes:76 - Процессы Chrome не найдены
+2025-12-09 10:34:22 | INFO     | src.agents.browser_agent:start_browser:97 - Запуск Chrome...
+2025-12-09 10:34:22 | INFO     | src.agents.browser_agent:start_browser:114 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 4
+2025-12-09 10:34:22 | INFO     | src.agents.browser_agent:start_browser:128 - Инициализация ChromeDriver...
+2025-12-09 10:34:24 | INFO     | src.agents.browser_agent:start_browser:131 - Запуск Chrome (это может занять время)...
+2025-12-09 10:34:48 | ERROR    | src.agents.browser_agent:execute_flow:707 - Критическая ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d4991
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:34:48 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:34:48 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:34:48 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:35:10 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 10:35:10 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 10:35:10 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 10:35:10 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 10:35:10 | INFO     | __main__:main:29 - Профиль Chrome: Profile 2
+2025-12-09 10:35:10 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 10:35:10 | INFO     | src.agents.browser_agent:execute_flow:700 - Начало выполнения основного потока
+2025-12-09 10:35:10 | INFO     | src.agents.browser_agent:execute_flow:703 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 10:35:10 | INFO     | src.agents.browser_agent:_kill_chrome_processes:58 - Закрытие всех процессов Chrome и ChromeDriver...
+2025-12-09 10:35:11 | INFO     | src.agents.browser_agent:_kill_chrome_processes:76 - Процессы Chrome не найдены
+2025-12-09 10:35:14 | INFO     | src.agents.browser_agent:start_browser:97 - Запуск Chrome...
+2025-12-09 10:35:14 | INFO     | src.agents.browser_agent:start_browser:114 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 2
+2025-12-09 10:35:14 | INFO     | src.agents.browser_agent:start_browser:128 - Инициализация ChromeDriver...
+2025-12-09 10:35:15 | INFO     | src.agents.browser_agent:start_browser:131 - Запуск Chrome (это может занять время)...
+2025-12-09 10:35:27 | ERROR    | src.agents.browser_agent:execute_flow:707 - Критическая ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d4991
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:35:27 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:35:27 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:35:27 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:45:03 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 10:45:03 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 10:45:03 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 10:45:03 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 10:45:03 | INFO     | __main__:main:29 - Профиль Chrome: Profile 2
+2025-12-09 10:45:03 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 10:45:03 | INFO     | src.agents.browser_agent:execute_flow:897 - Начало выполнения основного потока
+2025-12-09 10:45:03 | INFO     | src.agents.browser_agent:execute_flow:900 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 10:45:03 | INFO     | src.agents.browser_agent:_kill_chrome_processes:58 - Закрытие всех процессов Chrome и ChromeDriver...
+2025-12-09 10:45:03 | INFO     | src.agents.browser_agent:_kill_chrome_processes:76 - Процессы Chrome не найдены
+2025-12-09 10:45:06 | INFO     | src.agents.browser_agent:start_browser:97 - Запуск Chrome...
+2025-12-09 10:45:06 | INFO     | src.agents.browser_agent:start_browser:114 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 2
+2025-12-09 10:45:06 | INFO     | src.agents.browser_agent:start_browser:128 - Инициализация ChromeDriver...
+2025-12-09 10:45:08 | INFO     | src.agents.browser_agent:start_browser:131 - Запуск Chrome (это может занять время)...
+2025-12-09 10:46:10 | ERROR    | src.agents.browser_agent:execute_flow:904 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:46:10 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:46:10 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:46:10 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:58:53 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 10:58:53 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 10:58:53 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 10:58:53 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 10:58:53 | INFO     | __main__:main:29 - Профиль Chrome: Profile 2
+2025-12-09 10:58:53 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 10:58:53 | INFO     | src.agents.browser_agent:execute_flow:869 - Начало выполнения основного потока
+2025-12-09 10:58:53 | INFO     | src.agents.browser_agent:execute_flow:872 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 10:58:53 | INFO     | src.agents.browser_agent:_kill_chrome_processes:58 - Закрытие всех процессов Chrome и ChromeDriver...
+2025-12-09 10:58:53 | INFO     | src.agents.browser_agent:_kill_chrome_processes:76 - Процессы Chrome не найдены
+2025-12-09 10:58:55 | INFO     | src.agents.browser_agent:start_browser:97 - Запуск Chrome...
+2025-12-09 10:58:55 | INFO     | src.agents.browser_agent:start_browser:111 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 2
+2025-12-09 10:59:59 | ERROR    | src.agents.browser_agent:execute_flow:876 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:59:59 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:59:59 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:59:59 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 11:18:09 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 11:18:09 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 11:18:09 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 11:18:09 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 11:18:09 | INFO     | __main__:main:29 - Профиль Chrome: Profile 2
+2025-12-09 11:18:09 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 11:18:09 | INFO     | src.agents.browser_agent:execute_flow:882 - Начало выполнения основного потока
+2025-12-09 11:18:09 | INFO     | src.agents.browser_agent:execute_flow:885 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 11:18:09 | INFO     | src.agents.browser_agent:_kill_chrome_processes:58 - Закрытие всех процессов Chrome и ChromeDriver...
+2025-12-09 11:18:09 | INFO     | src.agents.browser_agent:_kill_chrome_processes:76 - Процессы Chrome не найдены
+2025-12-09 11:18:11 | INFO     | src.agents.browser_agent:start_browser:97 - Запуск Chrome...
+2025-12-09 11:18:11 | INFO     | src.agents.browser_agent:start_browser:120 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 2
+2025-12-09 11:19:15 | ERROR    | src.agents.browser_agent:execute_flow:889 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 11:19:15 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 11:19:15 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 11:19:15 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 11:29:05 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 11:29:05 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 11:29:05 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 11:29:05 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 11:29:05 | INFO     | __main__:main:29 - Профиль Chrome: Profile 2
+2025-12-09 11:29:05 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 11:29:05 | INFO     | src.agents.browser_agent:execute_flow:867 - Начало выполнения основного потока
+2025-12-09 11:29:05 | INFO     | src.agents.browser_agent:execute_flow:870 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 11:29:05 | WARNING  | src.agents.browser_agent:execute_flow:871 - ⚠ ВАЖНО: Убедитесь, что Chrome НЕ запущен с профилем Profile 2!
+2025-12-09 11:29:05 | WARNING  | src.agents.browser_agent:execute_flow:872 - ⚠ Если Chrome запущен - закройте его вручную перед запуском скрипта
+2025-12-09 11:29:05 | INFO     | src.agents.browser_agent:start_browser:93 - Запуск Chrome (НЕ закрываем существующие процессы)...
+2025-12-09 11:29:05 | INFO     | src.agents.browser_agent:start_browser:109 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 2
+2025-12-09 11:30:09 | ERROR    | src.agents.browser_agent:execute_flow:876 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 11:30:09 | ERROR    | src.agents.browser_agent:execute_flow:877 - Возможные причины:
+2025-12-09 11:30:09 | ERROR    | src.agents.browser_agent:execute_flow:878 - 1. Chrome уже запущен с профилем Profile 2 - закройте его вручную
+2025-12-09 11:30:09 | ERROR    | src.agents.browser_agent:execute_flow:879 - 2. Профиль заблокирован - закройте все окна Chrome
+2025-12-09 11:30:09 | ERROR    | src.agents.browser_agent:execute_flow:880 - 3. Недостаточно прав доступа к профилю
+2025-12-09 11:30:09 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 11:30:09 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 11:30:09 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 11:32:22 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 11:32:22 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 11:32:22 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 11:32:22 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 11:32:22 | INFO     | __main__:main:29 - Профиль Chrome: Profile 2
+2025-12-09 11:32:22 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 11:32:22 | INFO     | src.agents.browser_agent:execute_flow:923 - Начало выполнения основного потока
+2025-12-09 11:32:22 | INFO     | src.agents.browser_agent:execute_flow:926 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 11:32:22 | WARNING  | src.agents.browser_agent:execute_flow:927 - ⚠ ВАЖНО: Убедитесь, что Chrome НЕ запущен с профилем Profile 2!
+2025-12-09 11:32:22 | WARNING  | src.agents.browser_agent:execute_flow:928 - ⚠ Если Chrome запущен - закройте его вручную перед запуском скрипта
+2025-12-09 11:32:22 | INFO     | src.agents.browser_agent:start_browser:126 - Запуск Chrome (НЕ закрываем существующие процессы)...
+2025-12-09 11:32:22 | INFO     | src.agents.browser_agent:start_browser:144 - Проверка прав доступа к профилю: C:\Users\fisher\AppData\Local\Google\Chrome\User Data\Profile 2
+2025-12-09 11:32:22 | SUCCESS  | src.agents.browser_agent:_check_profile_permissions:114 - ✓ Права доступа к профилю в порядке
+2025-12-09 11:32:22 | INFO     | src.agents.browser_agent:start_browser:159 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 2
+2025-12-09 11:32:22 | INFO     | src.agents.browser_agent:start_browser:173 - Инициализация ChromeDriver...
+2025-12-09 11:32:23 | INFO     | src.agents.browser_agent:start_browser:176 - Запуск Chrome...
+2025-12-09 11:33:26 | ERROR    | src.agents.browser_agent:execute_flow:932 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 11:33:26 | ERROR    | src.agents.browser_agent:execute_flow:933 - Возможные причины:
+2025-12-09 11:33:26 | ERROR    | src.agents.browser_agent:execute_flow:934 - 1. Chrome уже запущен с профилем Profile 2 - закройте его вручную
+2025-12-09 11:33:26 | ERROR    | src.agents.browser_agent:execute_flow:935 - 2. Профиль заблокирован - закройте все окна Chrome
+2025-12-09 11:33:26 | ERROR    | src.agents.browser_agent:execute_flow:936 - 3. Недостаточно прав доступа к профилю
+2025-12-09 11:33:26 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 11:33:26 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 11:33:26 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 11:42:38 | INFO     | __main__:main:20 - ============================================================
+2025-12-09 11:42:38 | INFO     | __main__:main:21 - Запуск парсера Wildberries
+2025-12-09 11:42:38 | INFO     | __main__:main:22 - ============================================================
+2025-12-09 11:42:38 | INFO     | __main__:main:28 - Стартовая страница: https://seller.wildberries.ru/analytics-reports/sales
+2025-12-09 11:42:38 | INFO     | __main__:main:29 - Профиль Chrome: Profile 2
+2025-12-09 11:42:38 | INFO     | __main__:main:30 - Папка загрузок: downloads
+2025-12-09 11:42:38 | INFO     | src.agents.browser_agent:execute_flow:905 - Начало выполнения основного потока
+2025-12-09 11:42:38 | INFO     | src.agents.browser_agent:execute_flow:908 - Шаг 1: Запуск браузера Chrome...
+2025-12-09 11:42:38 | WARNING  | src.agents.browser_agent:execute_flow:909 - ⚠ ВАЖНО: Убедитесь, что Chrome НЕ запущен с профилем Profile 2!
+2025-12-09 11:42:38 | WARNING  | src.agents.browser_agent:execute_flow:910 - ⚠ Если Chrome запущен - закройте его вручную перед запуском скрипта
+2025-12-09 11:42:38 | INFO     | src.agents.browser_agent:start_browser:93 - Запуск Chrome...
+2025-12-09 11:42:38 | INFO     | src.agents.browser_agent:start_browser:111 - Профиль: C:\Users\fisher\AppData\Local\Google\Chrome\User Data / Profile 2
+2025-12-09 11:42:38 | INFO     | src.agents.browser_agent:start_browser:129 - Инициализация ChromeDriver...
+2025-12-09 11:42:39 | INFO     | src.agents.browser_agent:start_browser:132 - Запуск Chrome...
+2025-12-09 11:43:42 | ERROR    | src.agents.browser_agent:start_browser:137 - ❌ Ошибка запуска Chrome: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 11:43:42 | INFO     | src.agents.browser_agent:start_browser:141 - Пробуем альтернативный способ запуска...
+2025-12-09 11:44:45 | ERROR    | src.agents.browser_agent:execute_flow:914 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 11:44:45 | ERROR    | src.agents.browser_agent:execute_flow:915 - Возможные причины:
+2025-12-09 11:44:45 | ERROR    | src.agents.browser_agent:execute_flow:916 - 1. Chrome уже запущен с профилем Profile 2 - закройте его вручную
+2025-12-09 11:44:45 | ERROR    | src.agents.browser_agent:execute_flow:917 - 2. Профиль заблокирован - закройте все окна Chrome
+2025-12-09 11:44:45 | ERROR    | src.agents.browser_agent:execute_flow:918 - 3. Недостаточно прав доступа к профилю
+2025-12-09 11:44:45 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 11:44:45 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 11:44:45 | ERROR    | __main__:main:51 - ============================================================

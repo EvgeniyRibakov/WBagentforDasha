@@ -7,6 +7,9 @@ openpyxl>=3.1.0
 selenium>=4.15.0
 webdriver-manager>=4.0.0
 
+# Для управления процессами
+psutil>=5.9.0
+
 # Логирование
 loguru>=0.7.2
 
@@ -17,7 +20,6 @@ pydantic-settings>=2.0.0
 # Telegram бот (опционально)
 python-telegram-bot>=20.0
 
-# Для обхода детекции (опционально)
-# undetected-chromedriver>=3.5.0
-# selenium-stealth>=1.0.6
+# Для обхода детекции (ОБЯЗАТЕЛЬНО для стабильной работы)
+undetected-chromedriver>=3.5.0
 

@@ -1,0 +1,404 @@
+2025-12-09 10:08:23 | ERROR    | src.agents.browser_agent:start_browser:210 - Ошибка запуска: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d4991
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:08:23 | ERROR    | src.agents.browser_agent:execute_flow:749 - Критическая ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d4991
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:08:23 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:08:23 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:08:23 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:19:25 | ERROR    | src.agents.browser_agent:start_browser:210 - Ошибка запуска: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:19:25 | ERROR    | src.agents.browser_agent:execute_flow:749 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:19:25 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:19:25 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:19:25 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:33:59 | ERROR    | src.agents.browser_agent:execute_flow:707 - Критическая ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d4991
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:33:59 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:33:59 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:33:59 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:34:48 | ERROR    | src.agents.browser_agent:execute_flow:707 - Критическая ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d4991
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:34:48 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:34:48 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:34:48 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:35:27 | ERROR    | src.agents.browser_agent:execute_flow:707 - Критическая ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d4991
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:35:27 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:35:27 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:35:27 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:46:10 | ERROR    | src.agents.browser_agent:execute_flow:904 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:46:10 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:46:10 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:46:10 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 10:59:59 | ERROR    | src.agents.browser_agent:execute_flow:876 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 10:59:59 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 10:59:59 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 10:59:59 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 11:19:15 | ERROR    | src.agents.browser_agent:execute_flow:889 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 11:19:15 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 11:19:15 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 11:19:15 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 11:30:09 | ERROR    | src.agents.browser_agent:execute_flow:876 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 11:30:09 | ERROR    | src.agents.browser_agent:execute_flow:877 - Возможные причины:
+2025-12-09 11:30:09 | ERROR    | src.agents.browser_agent:execute_flow:878 - 1. Chrome уже запущен с профилем Profile 2 - закройте его вручную
+2025-12-09 11:30:09 | ERROR    | src.agents.browser_agent:execute_flow:879 - 2. Профиль заблокирован - закройте все окна Chrome
+2025-12-09 11:30:09 | ERROR    | src.agents.browser_agent:execute_flow:880 - 3. Недостаточно прав доступа к профилю
+2025-12-09 11:30:09 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 11:30:09 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 11:30:09 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 11:33:26 | ERROR    | src.agents.browser_agent:execute_flow:932 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 11:33:26 | ERROR    | src.agents.browser_agent:execute_flow:933 - Возможные причины:
+2025-12-09 11:33:26 | ERROR    | src.agents.browser_agent:execute_flow:934 - 1. Chrome уже запущен с профилем Profile 2 - закройте его вручную
+2025-12-09 11:33:26 | ERROR    | src.agents.browser_agent:execute_flow:935 - 2. Профиль заблокирован - закройте все окна Chrome
+2025-12-09 11:33:26 | ERROR    | src.agents.browser_agent:execute_flow:936 - 3. Недостаточно прав доступа к профилю
+2025-12-09 11:33:26 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 11:33:26 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 11:33:26 | ERROR    | __main__:main:51 - ============================================================
+2025-12-09 11:43:42 | ERROR    | src.agents.browser_agent:start_browser:137 - ❌ Ошибка запуска Chrome: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 11:44:45 | ERROR    | src.agents.browser_agent:execute_flow:914 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x5b0d23
+	0x5b0d64
+	0x39e6dd
+	0x3d8f1c
+	0x3d51ce
+	0x3cfafa
+	0x417826
+	0x417047
+	0x40b2e6
+	0x3dd321
+	0x3de1d4
+	0x804d64
+	0x80031b
+	0x81cbfa
+	0x5cac28
+	0x5d2c2d
+	0x5b9028
+	0x5b91e9
+	0x5a3578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-09 11:44:45 | ERROR    | src.agents.browser_agent:execute_flow:915 - Возможные причины:
+2025-12-09 11:44:45 | ERROR    | src.agents.browser_agent:execute_flow:916 - 1. Chrome уже запущен с профилем Profile 2 - закройте его вручную
+2025-12-09 11:44:45 | ERROR    | src.agents.browser_agent:execute_flow:917 - 2. Профиль заблокирован - закройте все окна Chrome
+2025-12-09 11:44:45 | ERROR    | src.agents.browser_agent:execute_flow:918 - 3. Недостаточно прав доступа к профилю
+2025-12-09 11:44:45 | ERROR    | __main__:main:49 - ============================================================
+2025-12-09 11:44:45 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-09 11:44:45 | ERROR    | __main__:main:51 - ============================================================

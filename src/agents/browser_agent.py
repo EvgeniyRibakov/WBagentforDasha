@@ -6,6 +6,8 @@
 import os
 import time
 import random
+import subprocess
+import psutil
 from pathlib import Path
 from typing import Optional, List, Dict
 from datetime import datetime, timedelta
@@ -14,6 +16,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
@@ -50,75 +53,128 @@ class BrowserAgent:
         self.data_dir = Path("data")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
+    def _kill_chrome_processes(self) -> None:
+        """Принудительное закрытие всех процессов Chrome и ChromeDriver"""
+        logger.info("Закрытие всех процессов Chrome и ChromeDriver...")
+        
+        processes_killed = 0
+        try:
+            for proc in psutil.process_iter(['pid', 'name']):
+                try:
+                    proc_name = proc.info['name'].lower()
+                    if 'chrome' in proc_name or 'chromedriver' in proc_name:
+                        logger.info(f"Завершение процесса: {proc.info['name']} (PID: {proc.info['pid']})")
+                        proc.kill()
+                        processes_killed += 1
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass
+            
+            if processes_killed > 0:
+                logger.info(f"✓ Завершено процессов: {processes_killed}")
+                time.sleep(2)  # Даём время процессам завершиться
+            else:
+                logger.info("Процессы Chrome не найдены")
+                
+        except Exception as e:
+            logger.warning(f"Ошибка при закрытии процессов Chrome: {e}")
+            # Альтернативный способ через taskkill (Windows)
+            try:
+                subprocess.run(['taskkill', '/F', '/IM', 'chrome.exe'], 
+                             capture_output=True, timeout=5)
+                subprocess.run(['taskkill', '/F', '/IM', 'chromedriver.exe'], 
+                             capture_output=True, timeout=5)
+                logger.info("Попытка закрыть Chrome через taskkill выполнена")
+                time.sleep(2)
+            except Exception as e2:
+                logger.warning(f"Не удалось закрыть через taskkill: {e2}")
+    
     def start_browser(self) -> None:
         """Запуск браузера с профилем Chrome"""
+        logger.info("Запуск Chrome...")
+        
         options = Options()
         
-        # НЕ используем headless - Wildberries может блокировать
-        # options.add_argument("--headless=new")  # НЕ включать!
-        
-        # Базовые настройки
+        # Базовые аргументы
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-blink-features=AutomationControlled")
         
-        # КРИТИЧЕСКИ ВАЖНО: Использование профиля Chrome
+        # Профиль Chrome
         if self.settings.chrome_user_data_dir:
-            user_data_path = Path(self.settings.chrome_user_data_dir)
-            path_str = str(user_data_path.absolute())
+            user_data_dir = os.path.expandvars(self.settings.chrome_user_data_dir)
+            path_str = str(Path(user_data_dir).absolute())
             
             if os.path.exists(path_str):
-                # Указываем путь к папке User Data
+                # Используем абсолютный путь
                 options.add_argument(f'--user-data-dir={path_str}')
-                # Указываем имя профиля
-                options.add_argument(f"--profile-directory={self.settings.chrome_profile_name}")
-                
-                logger.info(f"Используется профиль Chrome: {path_str} / {self.settings.chrome_profile_name}")
-                
-                # Проверяем, что папка профиля существует
-                profile_path = user_data_path / self.settings.chrome_profile_name
-                if os.path.exists(str(profile_path.absolute())):
-                    logger.success(f"✓ Папка профиля найдена: {profile_path}")
-                else:
-                    logger.warning(f"⚠ Папка профиля не найдена: {profile_path}")
+                options.add_argument(f'--profile-directory={self.settings.chrome_profile_name}')
+                logger.info(f"Профиль: {path_str} / {self.settings.chrome_profile_name}")
             else:
-                logger.warning(f"⚠ Путь к профилю Chrome не существует: {path_str}")
+                logger.error(f"❌ Путь к профилю не существует: {path_str}")
+                raise FileNotFoundError(f"Профиль Chrome не найден: {path_str}")
         
-        # Убираем признаки автоматизации
-        options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
-        options.add_experimental_option('useAutomationExtension', False)
-        
-        # Настройка скачивания файлов
+        # Настройка скачивания
         downloads_path = str(self.downloads_dir.absolute())
         prefs = {
             "download.default_directory": downloads_path,
             "download.prompt_for_download": False,
-            "download.directory_upgrade": True,
-            "safebrowsing.enabled": True,
-            "profile.default_content_setting_values.automatic_downloads": 1,
         }
         options.add_experimental_option("prefs", prefs)
         
-        # User-Agent
-        options.add_argument(
-            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        )
+        # Убираем признаки автоматизации
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
         
-        # Запускаем браузер
+        # Запуск браузера
+        logger.info("Инициализация ChromeDriver...")
         service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=service, options=options)
         
-        # Убираем признаки автоматизации через JavaScript
-        self.driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
-            'source': '''
-                Object.defineProperty(navigator, 'webdriver', {
-                    get: () => undefined
-                })
-            '''
-        })
+        logger.info("Запуск Chrome...")
+        try:
+            self.driver = webdriver.Chrome(service=service, options=options)
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"❌ Ошибка запуска Chrome: {error_msg}")
+            
+            # Если ошибка DevToolsActivePort - пробуем альтернативный способ
+            if "DevToolsActivePort" in error_msg:
+                logger.info("Пробуем альтернативный способ запуска...")
+                # Пробуем без некоторых аргументов
+                options_alt = Options()
+                options_alt.add_argument("--no-sandbox")
+                if self.settings.chrome_user_data_dir:
+                    user_data_dir = os.path.expandvars(self.settings.chrome_user_data_dir)
+                    path_str = str(Path(user_data_dir).absolute())
+                    options_alt.add_argument(f'--user-data-dir={path_str}')
+                    options_alt.add_argument(f'--profile-directory={self.settings.chrome_profile_name}')
+                downloads_path = str(self.downloads_dir.absolute())
+                prefs = {
+                    "download.default_directory": downloads_path,
+                    "download.prompt_for_download": False,
+                }
+                options_alt.add_experimental_option("prefs", prefs)
+                self.driver = webdriver.Chrome(service=service, options=options_alt)
+            else:
+                raise
         
-        logger.success("✓ Браузер запущен с профилем Chrome")
+        logger.success("✓ Браузер запущен")
+        
+        # Максимизируем окно
+        try:
+            self.driver.maximize_window()
+        except:
+            pass
+        
+        time.sleep(2)
+        
+        # СРАЗУ открываем страницу Wildberries (прямо в коде)
+        wb_url = "https://seller.wildberries.ru/analytics-reports/sales"
+        logger.info(f"Открытие страницы: {wb_url}")
+        self.driver.get(wb_url)
+        
+        # Ждём загрузки
+        time.sleep(5)
+        logger.success(f"✓ Страница открыта: {self.driver.current_url}")
     
     def wait_for_element(self, by: By, value: str, timeout: int = 20) -> Optional[object]:
         """
@@ -281,18 +337,52 @@ class BrowserAgent:
             True если успешно, False при ошибке
         """
         try:
-            logger.info(f"Переход на страницу: {url}")
+            if not self.driver:
+                logger.error("Браузер не запущен!")
+                return False
+            
+            logger.info(f"Открытие страницы в адресной строке: {url}")
+            
+            # Принудительный переход на URL
             self.driver.get(url)
             
             # Ожидание загрузки страницы
+            logger.info("Ожидание загрузки страницы...")
             time.sleep(self.settings.delay_page_load)
+            
+            # Ожидание готовности документа
+            WebDriverWait(self.driver, 20).until(
+                lambda d: d.execute_script("return document.readyState") == "complete"
+            )
+            
             self.wait_for_dynamic_content()
             
-            logger.success(f"✓ Страница загружена: {url}")
-            return True
+            # Проверяем текущий URL
+            current_url = self.driver.current_url
+            logger.info(f"Текущий URL после перехода: {current_url}")
+            
+            # Проверяем, что мы на правильной странице
+            if url in current_url or "wildberries.ru" in current_url:
+                logger.success(f"✓ Страница загружена: {current_url}")
+                return True
+            else:
+                logger.warning(f"⚠ Перешли на другую страницу: {current_url}")
+                logger.warning(f"Ожидалось: {url}")
+                # Пробуем перейти ещё раз
+                logger.info("Повторная попытка перехода...")
+                self.driver.get(url)
+                time.sleep(self.settings.delay_page_load)
+                current_url = self.driver.current_url
+                if url in current_url or "wildberries.ru" in current_url:
+                    logger.success(f"✓ Страница загружена после повторной попытки: {current_url}")
+                    return True
+                else:
+                    logger.error(f"Не удалось перейти на нужную страницу. Текущий URL: {current_url}")
+                    return False
             
         except Exception as e:
             logger.error(f"Ошибка при переходе на {url}: {e}")
+            logger.exception("Детали ошибки:")
             return False
     
     def check_session(self) -> bool:
@@ -303,23 +393,220 @@ class BrowserAgent:
             True если сессия активна, False если требуется авторизация
         """
         try:
-            # Проверяем наличие элементов авторизации
-            auth_elements = self.driver.find_elements(
-                By.CSS_SELECTOR, 
-                "input[type='password'], input[name*='password'], input[id*='password'], "
-                "button[type='submit'][class*='login'], form[class*='auth']"
-            )
+            current_url = self.driver.current_url
+            logger.info(f"Проверка сессии. Текущий URL: {current_url}")
             
-            if auth_elements:
-                logger.error("⚠ Обнаружена форма авторизации - сессия истекла!")
+            # Проверяем наличие элементов авторизации
+            auth_selectors = [
+                "input[type='password']",
+                "input[name*='password']",
+                "input[id*='password']",
+                "input[placeholder*='парол']",
+                "input[placeholder*='Парол']",
+                "button[type='submit'][class*='login']",
+                "button[class*='auth']",
+                "button:contains('Войти')",
+                "button:contains('Вход')",
+                "form[class*='auth']",
+                "form[class*='login']",
+            ]
+            
+            auth_found = False
+            for selector in auth_selectors:
+                try:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    if elements:
+                        logger.warning(f"⚠ Найден элемент авторизации: {selector}")
+                        auth_found = True
+                        break
+                except:
+                    continue
+            
+            # Проверяем наличие элементов страницы отчётов (признак успешной авторизации)
+            report_selectors = [
+                "input[id='suppliers-search']",
+                "input[name='suppliers-search']",
+                "input[placeholder*='ИНН']",
+                "input[placeholder*='ID']",
+                "button:contains('Выгрузить в Excel')",
+                "button[class*='Date-input__icon-button']",
+            ]
+            
+            report_found = False
+            for selector in report_selectors:
+                try:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    if elements:
+                        logger.debug(f"✓ Найден элемент страницы отчётов: {selector}")
+                        report_found = True
+                        break
+                except:
+                    continue
+            
+            # Если найдены элементы авторизации И нет элементов отчётов - требуется авторизация
+            if auth_found and not report_found:
+                logger.error("⚠ Обнаружена форма авторизации - сессия истекла или требуется вход!")
                 return False
             
-            logger.debug("✓ Сессия активна")
-            return True
+            # Если найдены элементы отчётов - авторизация успешна
+            if report_found:
+                logger.success("✓ Сессия активна, страница отчётов загружена")
+                return True
+            
+            # Если ничего не найдено - проверяем URL
+            if "login" in current_url.lower() or "auth" in current_url.lower():
+                logger.error("⚠ URL указывает на страницу авторизации")
+                return False
+            
+            logger.warning("⚠ Не удалось определить статус авторизации, предполагаем что требуется авторизация")
+            return False
             
         except Exception as e:
-            logger.warning(f"Не удалось проверить сессию: {e}")
-            return True  # Предполагаем что сессия активна
+            logger.warning(f"Ошибка при проверке сессии: {e}")
+            return False  # В случае ошибки предполагаем что требуется авторизация
+    
+    def handle_authorization(self) -> bool:
+        """
+        Автоматическая авторизация на Wildberries
+        
+        Returns:
+            True если авторизация успешна, False при ошибке
+        """
+        try:
+            if not self.settings.password:
+                logger.error("Пароль не указан в настройках")
+                return False
+            
+            logger.info("Поиск формы авторизации...")
+            time.sleep(2)
+            
+            # Ищем поле для телефона/email
+            phone_email_selectors = [
+                "input[type='tel']",
+                "input[name*='phone']",
+                "input[id*='phone']",
+                "input[name*='email']",
+                "input[id*='email']",
+                "input[placeholder*='Телефон']",
+                "input[placeholder*='телефон']",
+                "input[placeholder*='Email']",
+                "input[placeholder*='email']",
+            ]
+            
+            phone_email_field = None
+            for selector in phone_email_selectors:
+                try:
+                    field = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    if field.is_displayed():
+                        phone_email_field = field
+                        logger.info(f"✓ Найдено поле для телефона/email: {selector}")
+                        break
+                except:
+                    continue
+            
+            if not phone_email_field:
+                logger.error("❌ Не найдено поле для телефона/email")
+                return False
+            
+            # Вводим телефон или email
+            login_value = self.settings.phone_number or self.settings.email
+            if not login_value:
+                logger.error("❌ Не указан телефон или email в настройках")
+                return False
+            
+            logger.info("Ввод телефона/email...")
+            phone_email_field.clear()
+            time.sleep(self.settings.delay_before_type)
+            
+            for char in login_value:
+                phone_email_field.send_keys(char)
+                time.sleep(self.settings.delay_between_keys)
+            
+            time.sleep(self.settings.delay_after_type)
+            
+            # Ищем поле для пароля
+            password_selectors = [
+                "input[type='password']",
+                "input[name*='password']",
+                "input[id*='password']",
+                "input[placeholder*='парол']",
+                "input[placeholder*='Парол']",
+            ]
+            
+            password_field = None
+            for selector in password_selectors:
+                try:
+                    field = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    if field.is_displayed():
+                        password_field = field
+                        logger.info(f"✓ Найдено поле для пароля: {selector}")
+                        break
+                except:
+                    continue
+            
+            if not password_field:
+                logger.error("❌ Не найдено поле для пароля")
+                return False
+            
+            # Вводим пароль
+            logger.info("Ввод пароля...")
+            password_field.clear()
+            time.sleep(self.settings.delay_before_type)
+            
+            for char in self.settings.password:
+                password_field.send_keys(char)
+                time.sleep(self.settings.delay_between_keys)
+            
+            time.sleep(self.settings.delay_after_type)
+            
+            # Ищем кнопку входа
+            login_button_selectors = [
+                "button[type='submit']",
+                "button[class*='login']",
+                "button[class*='auth']",
+                "button[class*='enter']",
+                "button:contains('Войти')",
+                "button:contains('Вход')",
+                "input[type='submit']",
+            ]
+            
+            login_button = None
+            for selector in login_button_selectors:
+                try:
+                    button = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    if button.is_displayed() and button.is_enabled():
+                        login_button = button
+                        logger.info(f"✓ Найдена кнопка входа: {selector}")
+                        break
+                except:
+                    continue
+            
+            if not login_button:
+                logger.error("❌ Не найдена кнопка входа")
+                return False
+            
+            # Нажимаем кнопку входа
+            logger.info("Нажатие кнопки входа...")
+            time.sleep(self.settings.delay_before_click)
+            login_button.click()
+            time.sleep(self.settings.delay_after_click)
+            
+            # Ждём завершения авторизации
+            logger.info("Ожидание завершения авторизации...")
+            time.sleep(5)
+            
+            # Проверяем успешность авторизации
+            if self.check_session():
+                logger.success("✓ Авторизация успешна!")
+                return True
+            else:
+                logger.warning("⚠ Авторизация может быть не завершена, проверьте вручную")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Ошибка при авторизации: {e}")
+            logger.exception("Детали ошибки:")
+            return False
     
     def process_cabinet(self, cabinet: Dict[str, str]) -> bool:
         """
@@ -617,19 +904,69 @@ class BrowserAgent:
         try:
             logger.info("Начало выполнения основного потока")
             
-            # Шаг 1: Запуск браузера
-            self.start_browser()
-            
-            # Шаг 2: Переход на стартовую страницу
-            if not self.navigate_to_url(self.settings.wildberries_start_url):
-                logger.error("Не удалось перейти на стартовую страницу")
+            # Шаг 1: Запуск браузера (БЕЗ закрытия существующих процессов Chrome)
+            logger.info("Шаг 1: Запуск браузера Chrome...")
+            logger.warning("⚠ ВАЖНО: Убедитесь, что Chrome НЕ запущен с профилем Profile 2!")
+            logger.warning("⚠ Если Chrome запущен - закройте его вручную перед запуском скрипта")
+            try:
+                self.start_browser()
+            except Exception as e:
+                logger.error(f"Критическая ошибка при запуске браузера: {e}")
+                logger.error("Возможные причины:")
+                logger.error("1. Chrome уже запущен с профилем Profile 2 - закройте его вручную")
+                logger.error("2. Профиль заблокирован - закройте все окна Chrome")
+                logger.error("3. Недостаточно прав доступа к профилю")
                 return False
             
-            # Шаг 3: Проверка сессии
+            if not self.driver:
+                logger.error("Браузер не был запущен!")
+                return False
+            
+            # Шаг 2: Проверка что страница открыта (уже открыта в start_browser)
+            logger.info("Шаг 2: Проверка страницы...")
+            current_url = self.driver.current_url
+            logger.info(f"Текущий URL: {current_url}")
+            
+            # Если не на нужной странице - переходим
+            if "wildberries.ru" not in current_url or "analytics-reports/sales" not in current_url:
+                logger.warning("Не на странице отчётов, переходим...")
+                self.driver.get(self.settings.wildberries_start_url)
+                time.sleep(5)
+                WebDriverWait(self.driver, 20).until(
+                    lambda d: d.execute_script("return document.readyState") == "complete"
+                )
+                logger.success("✓ Страница загружена")
+            
+            # Шаг 3: Проверка и авторизация (если требуется)
             if not self.check_session():
-                logger.error("Сессия истекла или требуется авторизация!")
-                logger.error("Пожалуйста, авторизуйтесь вручную в профиле Chrome и запустите скрипт снова")
-                return False
+                logger.warning("⚠ Требуется авторизация")
+                
+                # Пробуем автоматическую авторизацию
+                if self.settings.phone_number or self.settings.email:
+                    logger.info("Попытка автоматической авторизации...")
+                    if self.handle_authorization():
+                        logger.success("✓ Авторизация успешна")
+                        # Проверяем снова после авторизации
+                        time.sleep(3)
+                        if not self.check_session():
+                            logger.error("❌ Авторизация не прошла проверку")
+                            return False
+                    else:
+                        logger.error("❌ Авторизация не удалась")
+                        logger.error("Пожалуйста, авторизуйтесь вручную в браузере и запустите скрипт снова")
+                        logger.info("Ожидание 60 секунд для ручной авторизации...")
+                        time.sleep(60)
+                        # Проверяем снова после ожидания
+                        if not self.check_session():
+                            return False
+                else:
+                    logger.error("❌ Данные для авторизации не указаны в .env")
+                    logger.error("Добавьте PHONE_NUMBER или EMAIL и PASSWORD в .env файл")
+                    logger.info("Ожидание 60 секунд для ручной авторизации...")
+                    time.sleep(60)
+                    # Проверяем снова после ожидания
+                    if not self.check_session():
+                        return False
             
             # Шаг 4: Обработка каждого кабинета
             for cabinet in self.CABINETS:
@@ -658,3 +995,5 @@ class BrowserAgent:
             if self.driver:
                 logger.info("Закрытие браузера")
                 self.driver.quit()
+
+

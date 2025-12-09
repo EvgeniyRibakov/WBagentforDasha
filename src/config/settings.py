@@ -13,9 +13,10 @@ class Settings(BaseSettings):
     
     # Wildberries Seller
     wildberries_start_url: str = "https://seller.wildberries.ru/analytics-reports/sales"
-    # phone_number и email НЕ требуются, так как авторизация через профиль Chrome
-    phone_number: str = ""  # Не используется (авторизация через профиль)
-    email: str = ""  # Не используется (авторизация через профиль)
+    # Данные для авторизации (если сессия истекла)
+    phone_number: Optional[str] = None  # Телефон для авторизации (опционально)
+    email: Optional[str] = None  # Email для авторизации (опционально)
+    password: Optional[str] = None  # Пароль для авторизации (опционально)
     
     # Задержки (увеличены для Wildberries)
     delay_before_click: float = 1.5
@@ -28,7 +29,7 @@ class Settings(BaseSettings):
     
     # Профиль Chrome (ОБЯЗАТЕЛЬНО - содержит сохранённую авторизацию)
     chrome_user_data_dir: Optional[str] = None
-    chrome_profile_name: str = "Profile 1"
+    chrome_profile_name: str = "Profile 2"
     
     # Папки
     downloads_dir: Path = Path("downloads")
@@ -47,3 +48,6 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"  # Игнорировать дополнительные поля из .env
+
+

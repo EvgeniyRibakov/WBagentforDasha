@@ -1,0 +1,1606 @@
+2025-12-08 22:41:50 | ERROR    | __main__:main:59 - Критическая ошибка: 6 validation errors for Settings
+cosmo
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...VsYaZ9jm3iMPA8x2E5usOTg', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+mma
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...Am-AYipmZJA9Yutbauc43tQ', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+mab
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...8jMU2-39M5KsTA4ulOtM_VA', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+mau
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...8t6pTcSuZgW-O-WWQ25jOYw', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+dreamlab
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...8W6XwYtOY3KlaI2lWL2-XUA', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+beautylab
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...aobNUroJvjHJQKpZYzpPnTg', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+2025-12-08 22:41:50 | ERROR    | __main__:main:60 - Детали ошибки:
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 65, in <module>
+    success = main()
+              └ <function main at 0x000002D32F9D9B20>
+
+> File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 26, in main
+    settings = Settings()
+               └ <class 'src.config.settings.Settings'>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic_settings\main.py", line 194, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     │    │                      │               │                   └ Settings()
+                     │    │                      │               └ {'wildberries_start_url': 'https://seller.wildberries.ru/analytics-reports/sales', 'delay_before_click': '1.5', 'delay_after_...
+                     │    │                      └ <method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects>
+                     │    └ SchemaValidator(title="Settings", validator=Model(
+                     │          ModelValidator {
+                     │              revalidate: Never,
+                     │              validator: ModelFi...
+                     └ Settings()
+
+pydantic_core._pydantic_core.ValidationError: 6 validation errors for Settings
+cosmo
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...VsYaZ9jm3iMPA8x2E5usOTg', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+mma
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...Am-AYipmZJA9Yutbauc43tQ', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+mab
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...8jMU2-39M5KsTA4ulOtM_VA', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+mau
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...8t6pTcSuZgW-O-WWQ25jOYw', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+dreamlab
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...8W6XwYtOY3KlaI2lWL2-XUA', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+beautylab
+  Extra inputs are not permitted [type=extra_forbidden, input_value='eyJhbGciOiJFUzI1NiIsImtp...aobNUroJvjHJQKpZYzpPnTg', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+2025-12-08 22:47:47 | ERROR    | src.agents.browser_agent:execute_flow:654 - Критическая ошибка в основном потоке: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e3892
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 22:47:47 | ERROR    | src.agents.browser_agent:execute_flow:655 - Детали ошибки:
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 65, in <module>
+    success = main()
+              └ <function main at 0x0000020A7EDE99E0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 42, in main
+    success = agent.execute_flow()
+              │     └ <function BrowserAgent.execute_flow at 0x0000020A7EDCBA60>
+              └ <src.agents.browser_agent.BrowserAgent object at 0x0000020A7E0673E0>
+
+> File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 623, in execute_flow
+    self.start_browser()
+    │    └ <function BrowserAgent.start_browser at 0x0000020A7EB7C2C0>
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000020A7E0673E0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 112, in start_browser
+    self.driver = webdriver.Chrome(service=service, options=options)
+    │    │        │         │              │                └ <selenium.webdriver.chrome.options.Options object at 0x0000020A7D46C230>
+    │    │        │         │              └ <selenium.webdriver.chrome.service.Service object at 0x0000020A7EAFC080>
+    │    │        │         └ <class 'selenium.webdriver.chrome.webdriver.WebDriver'>
+    │    │        └ <module 'selenium.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\seleni...
+    │    └ None
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000020A7E0673E0>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 47, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 71, in __init__
+    super().__init__(command_executor=executor, options=options)
+                                      │                 └ <selenium.webdriver.chrome.options.Options object at 0x0000020A7D46C230>
+                                      └ <selenium.webdriver.chromium.remote_connection.ChromiumRemoteConnection object at 0x0000020A7DFAEA80>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 263, in __init__
+    self.start_session(capabilities)
+    │    │             └ {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: 'normal'>, 'goog:chromeOptions': {'excludeSwitches': ...
+    │    └ <function WebDriver.start_session at 0x0000020A7EB5F880>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 366, in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               │    │       │       │            └ {'capabilities': {'firstMatch': [{}], 'alwaysMatch': {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: ...
+               │    │       │       └ 'newSession'
+               │    │       └ <class 'selenium.webdriver.remote.command.Command'>
+               │    └ <function WebDriver.execute at 0x0000020A7EB5FBA0>
+               └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 458, in execute
+    self.error_handler.check_response(response)
+    │    │             │              └ {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created: Chrome instance exited. Exa...
+    │    │             └ <function ErrorHandler.check_response at 0x0000020A7EA031A0>
+    │    └ <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x0000020A7EB2CA10>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 233, in check_response
+    raise exception_class(message, screen, stacktrace)
+          │               │        │       └ ['Symbols not available. Dumping unresolved backtrace:', '\t0x12a4103', '\t0x12a4144', '\t0x10ae71d', '\t0x10e3892', '\t0x10d...
+          │               │        └ None
+          │               └ 'session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.'
+          └ <class 'selenium.common.exceptions.SessionNotCreatedException'>
+
+selenium.common.exceptions.SessionNotCreatedException: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e3892
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 22:47:47 | ERROR    | __main__:main:49 - ============================================================
+2025-12-08 22:47:47 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-08 22:47:47 | ERROR    | __main__:main:51 - ============================================================
+2025-12-08 22:52:15 | ERROR    | src.agents.browser_agent:execute_flow:659 - Критическая ошибка в основном потоке: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e96e9
+	0x10e5598
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 22:52:15 | ERROR    | src.agents.browser_agent:execute_flow:660 - Детали ошибки:
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 65, in <module>
+    success = main()
+              └ <function main at 0x000001822CC499E0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 42, in main
+    success = agent.execute_flow()
+              │     └ <function BrowserAgent.execute_flow at 0x000001822CC2BA60>
+              └ <src.agents.browser_agent.BrowserAgent object at 0x000001822959E030>
+
+> File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 626, in execute_flow
+    self.start_browser()
+    │    └ <function BrowserAgent.start_browser at 0x000001822C9DC2C0>
+    └ <src.agents.browser_agent.BrowserAgent object at 0x000001822959E030>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 112, in start_browser
+    self.driver = webdriver.Chrome(service=service, options=options)
+    │    │        │         │              │                └ <selenium.webdriver.chrome.options.Options object at 0x000001822B2CC230>
+    │    │        │         │              └ <selenium.webdriver.chrome.service.Service object at 0x000001822CA0E7E0>
+    │    │        │         └ <class 'selenium.webdriver.chrome.webdriver.WebDriver'>
+    │    │        └ <module 'selenium.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\seleni...
+    │    └ None
+    └ <src.agents.browser_agent.BrowserAgent object at 0x000001822959E030>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 47, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 71, in __init__
+    super().__init__(command_executor=executor, options=options)
+                                      │                 └ <selenium.webdriver.chrome.options.Options object at 0x000001822B2CC230>
+                                      └ <selenium.webdriver.chromium.remote_connection.ChromiumRemoteConnection object at 0x000001822C7A7AA0>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 263, in __init__
+    self.start_session(capabilities)
+    │    │             └ {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: 'normal'>, 'goog:chromeOptions': {'excludeSwitches': ...
+    │    └ <function WebDriver.start_session at 0x000001822C9C3880>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 366, in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               │    │       │       │            └ {'capabilities': {'firstMatch': [{}], 'alwaysMatch': {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: ...
+               │    │       │       └ 'newSession'
+               │    │       └ <class 'selenium.webdriver.remote.command.Command'>
+               │    └ <function WebDriver.execute at 0x000001822C9C3BA0>
+               └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 458, in execute
+    self.error_handler.check_response(response)
+    │    │             │              └ {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created: DevToolsActivePort file doe...
+    │    │             └ <function ErrorHandler.check_response at 0x000001822C8671A0>
+    │    └ <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x000001822CA5B7A0>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 233, in check_response
+    raise exception_class(message, screen, stacktrace)
+          │               │        │       └ ['Symbols not available. Dumping unresolved backtrace:', '\t0x12a4103', '\t0x12a4144', '\t0x10ae71d', '\t0x10e96e9', '\t0x10e...
+          │               │        └ None
+          │               └ "session not created: DevToolsActivePort file doesn't exist"
+          └ <class 'selenium.common.exceptions.SessionNotCreatedException'>
+
+selenium.common.exceptions.SessionNotCreatedException: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e96e9
+	0x10e5598
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 22:52:15 | ERROR    | __main__:main:49 - ============================================================
+2025-12-08 22:52:15 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-08 22:52:15 | ERROR    | __main__:main:51 - ============================================================
+2025-12-08 22:55:48 | ERROR    | src.agents.browser_agent:start_browser:138 - Ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e96e9
+	0x10e5598
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 22:55:48 | ERROR    | src.agents.browser_agent:start_browser:139 - Детали ошибки:
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 65, in <module>
+    success = main()
+              └ <function main at 0x000002545E319B20>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 42, in main
+    success = agent.execute_flow()
+              │     └ <function BrowserAgent.execute_flow at 0x000002545E2FBBA0>
+              └ <src.agents.browser_agent.BrowserAgent object at 0x000002545B0A16D0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 645, in execute_flow
+    self.start_browser()
+    │    └ <function BrowserAgent.start_browser at 0x000002545E0AC2C0>
+    └ <src.agents.browser_agent.BrowserAgent object at 0x000002545B0A16D0>
+
+> File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 115, in start_browser
+    self.driver = webdriver.Chrome(service=service, options=options)
+    │    │        │         │              │                └ <selenium.webdriver.chrome.options.Options object at 0x000002545AC441A0>
+    │    │        │         │              └ <selenium.webdriver.chrome.service.Service object at 0x000002545DF3CEC0>
+    │    │        │         └ <class 'selenium.webdriver.chrome.webdriver.WebDriver'>
+    │    │        └ <module 'selenium.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\seleni...
+    │    └ None
+    └ <src.agents.browser_agent.BrowserAgent object at 0x000002545B0A16D0>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 47, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 71, in __init__
+    super().__init__(command_executor=executor, options=options)
+                                      │                 └ <selenium.webdriver.chrome.options.Options object at 0x000002545AC441A0>
+                                      └ <selenium.webdriver.chromium.remote_connection.ChromiumRemoteConnection object at 0x000002545D578140>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 263, in __init__
+    self.start_session(capabilities)
+    │    │             └ {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: 'normal'>, 'goog:chromeOptions': {'excludeSwitches': ...
+    │    └ <function WebDriver.start_session at 0x000002545E0939C0>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 366, in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               │    │       │       │            └ {'capabilities': {'firstMatch': [{}], 'alwaysMatch': {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: ...
+               │    │       │       └ 'newSession'
+               │    │       └ <class 'selenium.webdriver.remote.command.Command'>
+               │    └ <function WebDriver.execute at 0x000002545E093CE0>
+               └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 458, in execute
+    self.error_handler.check_response(response)
+    │    │             │              └ {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created: DevToolsActivePort file doe...
+    │    │             └ <function ErrorHandler.check_response at 0x000002545DF372E0>
+    │    └ <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x000002545D46E9C0>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 233, in check_response
+    raise exception_class(message, screen, stacktrace)
+          │               │        │       └ ['Symbols not available. Dumping unresolved backtrace:', '\t0x12a4103', '\t0x12a4144', '\t0x10ae71d', '\t0x10e96e9', '\t0x10e...
+          │               │        └ None
+          │               └ "session not created: DevToolsActivePort file doesn't exist"
+          └ <class 'selenium.common.exceptions.SessionNotCreatedException'>
+
+selenium.common.exceptions.SessionNotCreatedException: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e96e9
+	0x10e5598
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 22:55:48 | ERROR    | src.agents.browser_agent:execute_flow:647 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e96e9
+	0x10e5598
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 22:55:48 | ERROR    | __main__:main:49 - ============================================================
+2025-12-08 22:55:48 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-08 22:55:48 | ERROR    | __main__:main:51 - ============================================================
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:151 - Ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e3892
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:155 - ============================================================
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:156 - ⚠ ПРОБЛЕМА: Chrome не может запуститься с указанным профилем
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:157 - ============================================================
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:158 - ВОЗМОЖНЫЕ ПРИЧИНЫ:
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:159 - 1. Chrome уже запущен с этим профилем - закройте ВСЕ окна Chrome
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:160 - 2. Профиль заблокирован другим процессом
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:161 - 3. Недостаточно прав доступа к профилю
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:162 - 
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:163 - РЕШЕНИЕ:
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:164 - 1. Откройте Диспетчер задач (Ctrl+Shift+Esc)
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:165 - 2. Найдите все процессы 'chrome.exe' и 'chromedriver.exe'
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:166 - 3. Завершите ВСЕ эти процессы
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:167 - 4. Запустите скрипт снова
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:168 - ============================================================
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:start_browser:170 - Детали ошибки:
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 65, in <module>
+    success = main()
+              └ <function main at 0x0000029C66449BC0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 42, in main
+    success = agent.execute_flow()
+              │     └ <function BrowserAgent.execute_flow at 0x0000029C6642BC40>
+              └ <src.agents.browser_agent.BrowserAgent object at 0x0000029C62D9E030>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 676, in execute_flow
+    self.start_browser()
+    │    └ <function BrowserAgent.start_browser at 0x0000029C661DC360>
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000029C62D9E030>
+
+> File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 127, in start_browser
+    self.driver = webdriver.Chrome(service=service, options=options, keep_alive=True)
+    │    │        │         │              │                └ <selenium.webdriver.chrome.options.Options object at 0x0000029C6564EDB0>
+    │    │        │         │              └ <selenium.webdriver.chrome.service.Service object at 0x0000029C662DC620>
+    │    │        │         └ <class 'selenium.webdriver.chrome.webdriver.WebDriver'>
+    │    │        └ <module 'selenium.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\seleni...
+    │    └ None
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000029C62D9E030>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 47, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 71, in __init__
+    super().__init__(command_executor=executor, options=options)
+                                      │                 └ <selenium.webdriver.chrome.options.Options object at 0x0000029C6564EDB0>
+                                      └ <selenium.webdriver.chromium.remote_connection.ChromiumRemoteConnection object at 0x0000029C66259FA0>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 263, in __init__
+    self.start_session(capabilities)
+    │    │             └ {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: 'normal'>, 'goog:chromeOptions': {'excludeSwitches': ...
+    │    └ <function WebDriver.start_session at 0x0000029C661C3A60>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 366, in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               │    │       │       │            └ {'capabilities': {'firstMatch': [{}], 'alwaysMatch': {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: ...
+               │    │       │       └ 'newSession'
+               │    │       └ <class 'selenium.webdriver.remote.command.Command'>
+               │    └ <function WebDriver.execute at 0x0000029C661C3D80>
+               └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 458, in execute
+    self.error_handler.check_response(response)
+    │    │             │              └ {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created: Chrome instance exited. Exa...
+    │    │             └ <function ErrorHandler.check_response at 0x0000029C66067380>
+    │    └ <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x0000029C6615FF50>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 233, in check_response
+    raise exception_class(message, screen, stacktrace)
+          │               │        │       └ ['Symbols not available. Dumping unresolved backtrace:', '\t0x12a4103', '\t0x12a4144', '\t0x10ae71d', '\t0x10e3892', '\t0x10d...
+          │               │        └ None
+          │               └ 'session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.'
+          └ <class 'selenium.common.exceptions.SessionNotCreatedException'>
+
+selenium.common.exceptions.SessionNotCreatedException: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e3892
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:06:34 | ERROR    | src.agents.browser_agent:execute_flow:678 - Критическая ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e3892
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:06:34 | ERROR    | __main__:main:49 - ============================================================
+2025-12-08 23:06:34 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-08 23:06:34 | ERROR    | __main__:main:51 - ============================================================
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:186 - Ошибка при запуске браузера: Message: session not created
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae56b
+	0x10a1dcc
+	0x10e9f86
+	0x10e535f
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:190 - ============================================================
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:191 - ⚠ ПРОБЛЕМА: Chrome не может запуститься с указанным профилем
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:192 - ============================================================
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:193 - ВОЗМОЖНЫЕ ПРИЧИНЫ:
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:194 - 1. Chrome уже запущен с этим профилем - закройте ВСЕ окна Chrome
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:195 - 2. Профиль заблокирован другим процессом
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:196 - 3. Недостаточно прав доступа к профилю
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:197 - 
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:198 - РЕШЕНИЕ:
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:199 - 1. Откройте Диспетчер задач (Ctrl+Shift+Esc)
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:200 - 2. Найдите все процессы 'chrome.exe' и 'chromedriver.exe'
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:201 - 3. Завершите ВСЕ эти процессы
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:202 - 4. Запустите скрипт снова
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:203 - ============================================================
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:start_browser:205 - Детали ошибки:
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 65, in <module>
+    success = main()
+              └ <function main at 0x000001F6166B9C60>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 42, in main
+    success = agent.execute_flow()
+              │     └ <function BrowserAgent.execute_flow at 0x000001F61669FCE0>
+              └ <src.agents.browser_agent.BrowserAgent object at 0x000001F6164F7AA0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 742, in execute_flow
+    self.start_browser()
+    │    └ <function BrowserAgent.start_browser at 0x000001F61644C400>
+    └ <src.agents.browser_agent.BrowserAgent object at 0x000001F6164F7AA0>
+
+> File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 128, in start_browser
+    self.driver = webdriver.Chrome(service=service, options=options, keep_alive=True)
+    │    │        │         │              │                └ <selenium.webdriver.chrome.options.Options object at 0x000001F6158BEDB0>
+    │    │        │         │              └ <selenium.webdriver.chrome.service.Service object at 0x000001F6163766C0>
+    │    │        │         └ <class 'selenium.webdriver.chrome.webdriver.WebDriver'>
+    │    │        └ <module 'selenium.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\seleni...
+    │    └ None
+    └ <src.agents.browser_agent.BrowserAgent object at 0x000001F6164F7AA0>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 47, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 71, in __init__
+    super().__init__(command_executor=executor, options=options)
+                                      │                 └ <selenium.webdriver.chrome.options.Options object at 0x000001F6158BEDB0>
+                                      └ <selenium.webdriver.chromium.remote_connection.ChromiumRemoteConnection object at 0x000001F6165A6900>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 263, in __init__
+    self.start_session(capabilities)
+    │    │             └ {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: 'normal'>, 'goog:chromeOptions': {'excludeSwitches': ...
+    │    └ <function WebDriver.start_session at 0x000001F616433B00>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 366, in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               │    │       │       │            └ {'capabilities': {'firstMatch': [{}], 'alwaysMatch': {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: ...
+               │    │       │       └ 'newSession'
+               │    │       └ <class 'selenium.webdriver.remote.command.Command'>
+               │    └ <function WebDriver.execute at 0x000001F616433E20>
+               └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 458, in execute
+    self.error_handler.check_response(response)
+    │    │             │              └ {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created\\nfrom chrome not reachable"...
+    │    │             └ <function ErrorHandler.check_response at 0x000001F6162D7420>
+    │    └ <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x000001F61623C8C0>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 233, in check_response
+    raise exception_class(message, screen, stacktrace)
+          │               │        │       └ ['Symbols not available. Dumping unresolved backtrace:', '\t0x12a4103', '\t0x12a4144', '\t0x10ae56b', '\t0x10a1dcc', '\t0x10e...
+          │               │        └ None
+          │               └ 'session not created\nfrom chrome not reachable'
+          └ <class 'selenium.common.exceptions.SessionNotCreatedException'>
+
+selenium.common.exceptions.SessionNotCreatedException: Message: session not created
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae56b
+	0x10a1dcc
+	0x10e9f86
+	0x10e535f
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:10:34 | ERROR    | src.agents.browser_agent:execute_flow:744 - Критическая ошибка при запуске браузера: Message: session not created
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae56b
+	0x10a1dcc
+	0x10e9f86
+	0x10e535f
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:10:34 | ERROR    | __main__:main:49 - ============================================================
+2025-12-08 23:10:34 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-08 23:10:34 | ERROR    | __main__:main:51 - ============================================================
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:186 - Ошибка при запуске браузера: Message: session not created
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae56b
+	0x10a1dcc
+	0x10e9f86
+	0x10e535f
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:190 - ============================================================
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:191 - ⚠ ПРОБЛЕМА: Chrome не может запуститься с указанным профилем
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:192 - ============================================================
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:193 - ВОЗМОЖНЫЕ ПРИЧИНЫ:
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:194 - 1. Chrome уже запущен с этим профилем - закройте ВСЕ окна Chrome
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:195 - 2. Профиль заблокирован другим процессом
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:196 - 3. Недостаточно прав доступа к профилю
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:197 - 
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:198 - РЕШЕНИЕ:
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:199 - 1. Откройте Диспетчер задач (Ctrl+Shift+Esc)
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:200 - 2. Найдите все процессы 'chrome.exe' и 'chromedriver.exe'
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:201 - 3. Завершите ВСЕ эти процессы
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:202 - 4. Запустите скрипт снова
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:203 - ============================================================
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:start_browser:205 - Детали ошибки:
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 65, in <module>
+    success = main()
+              └ <function main at 0x0000016D404A9C60>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 42, in main
+    success = agent.execute_flow()
+              │     └ <function BrowserAgent.execute_flow at 0x0000016D4048BCE0>
+              └ <src.agents.browser_agent.BrowserAgent object at 0x0000016D40215A90>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 742, in execute_flow
+    self.start_browser()
+    │    └ <function BrowserAgent.start_browser at 0x0000016D4023C400>
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000016D40215A90>
+
+> File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 128, in start_browser
+    self.driver = webdriver.Chrome(service=service, options=options, keep_alive=True)
+    │    │        │         │              │                └ <selenium.webdriver.chrome.options.Options object at 0x0000016D3D1C16D0>
+    │    │        │         │              └ <selenium.webdriver.chrome.service.Service object at 0x0000016D3F4BD070>
+    │    │        │         └ <class 'selenium.webdriver.chrome.webdriver.WebDriver'>
+    │    │        └ <module 'selenium.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\seleni...
+    │    └ None
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000016D40215A90>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 47, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 71, in __init__
+    super().__init__(command_executor=executor, options=options)
+                                      │                 └ <selenium.webdriver.chrome.options.Options object at 0x0000016D3D1C16D0>
+                                      └ <selenium.webdriver.chromium.remote_connection.ChromiumRemoteConnection object at 0x0000016D402B9D30>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 263, in __init__
+    self.start_session(capabilities)
+    │    │             └ {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: 'normal'>, 'goog:chromeOptions': {'excludeSwitches': ...
+    │    └ <function WebDriver.start_session at 0x0000016D40223B00>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 366, in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               │    │       │       │            └ {'capabilities': {'firstMatch': [{}], 'alwaysMatch': {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: ...
+               │    │       │       └ 'newSession'
+               │    │       └ <class 'selenium.webdriver.remote.command.Command'>
+               │    └ <function WebDriver.execute at 0x0000016D40223E20>
+               └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 458, in execute
+    self.error_handler.check_response(response)
+    │    │             │              └ {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created\\nfrom chrome not reachable"...
+    │    │             └ <function ErrorHandler.check_response at 0x0000016D400C7420>
+    │    └ <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x0000016D3F708170>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 233, in check_response
+    raise exception_class(message, screen, stacktrace)
+          │               │        │       └ ['Symbols not available. Dumping unresolved backtrace:', '\t0x12a4103', '\t0x12a4144', '\t0x10ae56b', '\t0x10a1dcc', '\t0x10e...
+          │               │        └ None
+          │               └ 'session not created\nfrom chrome not reachable'
+          └ <class 'selenium.common.exceptions.SessionNotCreatedException'>
+
+selenium.common.exceptions.SessionNotCreatedException: Message: session not created
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae56b
+	0x10a1dcc
+	0x10e9f86
+	0x10e535f
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:12:42 | ERROR    | src.agents.browser_agent:execute_flow:744 - Критическая ошибка при запуске браузера: Message: session not created
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae56b
+	0x10a1dcc
+	0x10e9f86
+	0x10e535f
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:12:42 | ERROR    | __main__:main:49 - ============================================================
+2025-12-08 23:12:42 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-08 23:12:42 | ERROR    | __main__:main:51 - ============================================================
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:238 - Ошибка при запуске браузера: Message: session not created
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae56b
+	0x10a1dcc
+	0x10e9f86
+	0x10e535f
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:242 - ============================================================
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:243 - ⚠ ПРОБЛЕМА: Chrome не может запуститься с указанным профилем
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:244 - ============================================================
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:245 - ВОЗМОЖНЫЕ ПРИЧИНЫ:
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:246 - 1. Chrome уже запущен с этим профилем - закройте ВСЕ окна Chrome
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:247 - 2. Профиль заблокирован другим процессом
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:248 - 3. Недостаточно прав доступа к профилю
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:249 - 
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:250 - РЕШЕНИЕ:
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:251 - 1. Откройте Диспетчер задач (Ctrl+Shift+Esc)
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:252 - 2. Найдите все процессы 'chrome.exe' и 'chromedriver.exe'
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:253 - 3. Завершите ВСЕ эти процессы
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:254 - 4. Запустите скрипт снова
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:255 - ============================================================
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:start_browser:257 - Детали ошибки:
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 174, in start_browser
+    self.driver = webdriver.Chrome(service=service, options=options)
+    │    │        │         │              │                └ <selenium.webdriver.chrome.options.Options object at 0x00000164FB19BFE0>
+    │    │        │         │              └ <selenium.webdriver.chrome.service.Service object at 0x00000164FB145940>
+    │    │        │         └ <class 'selenium.webdriver.chrome.webdriver.WebDriver'>
+    │    │        └ <module 'selenium.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\seleni...
+    │    └ None
+    └ <src.agents.browser_agent.BrowserAgent object at 0x00000164FA299610>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 47, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 71, in __init__
+    super().__init__(command_executor=executor, options=options)
+                                      │                 └ <selenium.webdriver.chrome.options.Options object at 0x00000164FB19BFE0>
+                                      └ <selenium.webdriver.chromium.remote_connection.ChromiumRemoteConnection object at 0x00000164FA2B8500>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 263, in __init__
+    self.start_session(capabilities)
+    │    │             └ {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: 'normal'>, 'goog:chromeOptions': {'excludeSwitches': ...
+    │    └ <function WebDriver.start_session at 0x00000164FAF172E0>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 366, in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               │    │       │       │            └ {'capabilities': {'firstMatch': [{}], 'alwaysMatch': {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: ...
+               │    │       │       └ 'newSession'
+               │    │       └ <class 'selenium.webdriver.remote.command.Command'>
+               │    └ <function WebDriver.execute at 0x00000164FAF17600>
+               └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 458, in execute
+    self.error_handler.check_response(response)
+    │    │             │              └ {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created\\nfrom chrome not reachable"...
+    │    │             └ <function ErrorHandler.check_response at 0x00000164FADAEC00>
+    │    └ <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x00000164F9EBB800>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 233, in check_response
+    raise exception_class(message, screen, stacktrace)
+          │               │        │       └ ['Symbols not available. Dumping unresolved backtrace:', '\t0x12a4103', '\t0x12a4144', '\t0x10ae56b', '\t0x10a1dcc', '\t0x10e...
+          │               │        └ None
+          │               └ 'session not created\nfrom chrome not reachable'
+          └ <class 'selenium.common.exceptions.SessionNotCreatedException'>
+
+selenium.common.exceptions.SessionNotCreatedException: Message: session not created
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae56b
+	0x10a1dcc
+	0x10e9f86
+	0x10e535f
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+
+
+During handling of the above exception, another exception occurred:
+
+
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 65, in <module>
+    success = main()
+              └ <function main at 0x00000164FB1A54E0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 42, in main
+    success = agent.execute_flow()
+              │     └ <function BrowserAgent.execute_flow at 0x00000164FB183560>
+              └ <src.agents.browser_agent.BrowserAgent object at 0x00000164FA299610>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 794, in execute_flow
+    self.start_browser()
+    │    └ <function BrowserAgent.start_browser at 0x00000164FB182E80>
+    └ <src.agents.browser_agent.BrowserAgent object at 0x00000164FA299610>
+
+> File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 180, in start_browser
+    self.driver = webdriver.Chrome(service=service, options=options)
+    │    │        │         │              │                └ <selenium.webdriver.chrome.options.Options object at 0x00000164FB19BFE0>
+    │    │        │         │              └ <selenium.webdriver.chrome.service.Service object at 0x00000164FB145940>
+    │    │        │         └ <class 'selenium.webdriver.chrome.webdriver.WebDriver'>
+    │    │        └ <module 'selenium.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\seleni...
+    │    └ None
+    └ <src.agents.browser_agent.BrowserAgent object at 0x00000164FA299610>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 47, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 71, in __init__
+    super().__init__(command_executor=executor, options=options)
+                                      │                 └ <selenium.webdriver.chrome.options.Options object at 0x00000164FB19BFE0>
+                                      └ <selenium.webdriver.chromium.remote_connection.ChromiumRemoteConnection object at 0x00000164FB034B30>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 263, in __init__
+    self.start_session(capabilities)
+    │    │             └ {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: 'normal'>, 'goog:chromeOptions': {'excludeSwitches': ...
+    │    └ <function WebDriver.start_session at 0x00000164FAF172E0>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 366, in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               │    │       │       │            └ {'capabilities': {'firstMatch': [{}], 'alwaysMatch': {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: ...
+               │    │       │       └ 'newSession'
+               │    │       └ <class 'selenium.webdriver.remote.command.Command'>
+               │    └ <function WebDriver.execute at 0x00000164FAF17600>
+               └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 458, in execute
+    self.error_handler.check_response(response)
+    │    │             │              └ {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created\\nfrom chrome not reachable"...
+    │    │             └ <function ErrorHandler.check_response at 0x00000164FADAEC00>
+    │    └ <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x00000164FAF8BFB0>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 233, in check_response
+    raise exception_class(message, screen, stacktrace)
+          │               │        │       └ ['Symbols not available. Dumping unresolved backtrace:', '\t0x12a4103', '\t0x12a4144', '\t0x10ae56b', '\t0x10a1dcc', '\t0x10e...
+          │               │        └ None
+          │               └ 'session not created\nfrom chrome not reachable'
+          └ <class 'selenium.common.exceptions.SessionNotCreatedException'>
+
+selenium.common.exceptions.SessionNotCreatedException: Message: session not created
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae56b
+	0x10a1dcc
+	0x10e9f86
+	0x10e535f
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:17:40 | ERROR    | src.agents.browser_agent:execute_flow:796 - Критическая ошибка при запуске браузера: Message: session not created
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae56b
+	0x10a1dcc
+	0x10e9f86
+	0x10e535f
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:17:40 | ERROR    | __main__:main:49 - ============================================================
+2025-12-08 23:17:40 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-08 23:17:40 | ERROR    | __main__:main:51 - ============================================================
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:198 - Все 3 попытки не удались
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:257 - Ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e3892
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:261 - ============================================================
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:262 - ⚠ ПРОБЛЕМА: Chrome не может запуститься с указанным профилем
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:263 - ============================================================
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:264 - ВОЗМОЖНЫЕ ПРИЧИНЫ:
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:265 - 1. Chrome уже запущен с этим профилем - закройте ВСЕ окна Chrome
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:266 - 2. Профиль заблокирован другим процессом
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:267 - 3. Недостаточно прав доступа к профилю
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:268 - 
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:269 - РЕШЕНИЕ:
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:270 - 1. Откройте Диспетчер задач (Ctrl+Shift+Esc)
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:271 - 2. Найдите все процессы 'chrome.exe' и 'chromedriver.exe'
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:272 - 3. Завершите ВСЕ эти процессы
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:273 - 4. Запустите скрипт снова
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:274 - ============================================================
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:start_browser:276 - Детали ошибки:
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 65, in <module>
+    success = main()
+              └ <function main at 0x00000127992754E0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 42, in main
+    success = agent.execute_flow()
+              │     └ <function BrowserAgent.execute_flow at 0x0000012799253560>
+              └ <src.agents.browser_agent.BrowserAgent object at 0x0000012797DFC3B0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 813, in execute_flow
+    self.start_browser()
+    │    └ <function BrowserAgent.start_browser at 0x0000012799252E80>
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000012797DFC3B0>
+
+> File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 188, in start_browser
+    self.driver = webdriver.Chrome(service=service, options=options)
+    │    │        │         │              │                └ <selenium.webdriver.chrome.options.Options object at 0x0000012799267FB0>
+    │    │        │         │              └ <selenium.webdriver.chrome.service.Service object at 0x0000012797E37C50>
+    │    │        │         └ <class 'selenium.webdriver.chrome.webdriver.WebDriver'>
+    │    │        └ <module 'selenium.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\seleni...
+    │    └ None
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000012797DFC3B0>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 47, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 71, in __init__
+    super().__init__(command_executor=executor, options=options)
+                                      │                 └ <selenium.webdriver.chrome.options.Options object at 0x0000012799267FB0>
+                                      └ <selenium.webdriver.chromium.remote_connection.ChromiumRemoteConnection object at 0x0000012798369340>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 263, in __init__
+    self.start_session(capabilities)
+    │    │             └ {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: 'normal'>, 'goog:chromeOptions': {'excludeSwitches': ...
+    │    └ <function WebDriver.start_session at 0x0000012798FEB2E0>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 366, in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               │    │       │       │            └ {'capabilities': {'firstMatch': [{}], 'alwaysMatch': {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: ...
+               │    │       │       └ 'newSession'
+               │    │       └ <class 'selenium.webdriver.remote.command.Command'>
+               │    └ <function WebDriver.execute at 0x0000012798FEB600>
+               └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 458, in execute
+    self.error_handler.check_response(response)
+    │    │             │              └ {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created: Chrome instance exited. Exa...
+    │    │             └ <function ErrorHandler.check_response at 0x0000012798E7EC00>
+    │    └ <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x00000127992196D0>
+    └ <selenium.webdriver.chrome.webdriver.WebDriver (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 233, in check_response
+    raise exception_class(message, screen, stacktrace)
+          │               │        │       └ ['Symbols not available. Dumping unresolved backtrace:', '\t0x12a4103', '\t0x12a4144', '\t0x10ae71d', '\t0x10e3892', '\t0x10d...
+          │               │        └ None
+          │               └ 'session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.'
+          └ <class 'selenium.common.exceptions.SessionNotCreatedException'>
+
+selenium.common.exceptions.SessionNotCreatedException: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e3892
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:27:30 | ERROR    | src.agents.browser_agent:execute_flow:815 - Критическая ошибка при запуске браузера: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e3892
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:27:30 | ERROR    | __main__:main:49 - ============================================================
+2025-12-08 23:27:30 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-08 23:27:30 | ERROR    | __main__:main:51 - ============================================================
+2025-12-08 23:39:52 | ERROR    | src.agents.browser_agent:start_browser:181 - Ошибка при запуске браузера: Message: session not created: cannot connect to chrome at 127.0.0.1:52398
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x1010d23
+	0x1010d64
+	0xdfe52b
+	0xdf1e56
+	0xe397b3
+	0xe2fbe5
+	0xe2fa16
+	0xe77826
+	0xe77047
+	0xe6b2e6
+	0xe3d321
+	0xe3e1d4
+	0x1264d64
+	0x126031b
+	0x127cbfa
+	0x102ac28
+	0x1032c2d
+	0x1019028
+	0x10191e9
+	0x1003578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:39:52 | ERROR    | src.agents.browser_agent:start_browser:182 - Детали ошибки:
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 65, in <module>
+    success = main()
+              └ <function main at 0x0000022AD4833EC0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 42, in main
+    success = agent.execute_flow()
+              │     └ <function BrowserAgent.execute_flow at 0x0000022AD4832DE0>
+              └ <src.agents.browser_agent.BrowserAgent object at 0x0000022AD47CFB60>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 719, in execute_flow
+    self.start_browser()
+    │    └ <function BrowserAgent.start_browser at 0x0000022AD4832700>
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000022AD47CFB60>
+
+> File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 118, in start_browser
+    self.driver = uc.Chrome(
+    │    │        │  └ <class 'undetected_chromedriver.Chrome'>
+    │    │        └ <module 'undetected_chromedriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\u...
+    │    └ None
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000022AD47CFB60>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\undetected_chromedriver\__init__.py", line 466, in __init__
+    super(Chrome, self).__init__(
+          │       └ <undetected_chromedriver.Chrome (session="None")>
+          └ <class 'undetected_chromedriver.Chrome'>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 47, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 71, in __init__
+    super().__init__(command_executor=executor, options=options)
+                                      │                 └ <undetected_chromedriver.options.ChromeOptions object at 0x0000022AD44CE120>
+                                      └ <selenium.webdriver.chromium.remote_connection.ChromiumRemoteConnection object at 0x0000022AD4841EE0>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 263, in __init__
+    self.start_session(capabilities)
+    │    │             └ {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: 'normal'>, 'goog:chromeOptions': {'extensions': [], '...
+    │    └ <function Chrome.start_session at 0x0000022AD4823D80>
+    └ <undetected_chromedriver.Chrome (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\undetected_chromedriver\__init__.py", line 724, in start_session
+    super(selenium.webdriver.chrome.webdriver.WebDriver, self).start_session(
+          │        │         │      │         │          └ <undetected_chromedriver.Chrome (session="None")>
+          │        │         │      │         └ <class 'selenium.webdriver.chrome.webdriver.WebDriver'>
+          │        │         │      └ <module 'selenium.webdriver.chrome.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site...
+          │        │         └ <module 'selenium.webdriver.chrome' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\...
+          │        └ <module 'selenium.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\seleni...
+          └ <module 'selenium' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\selenium\\__init...
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 366, in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               │    │       │       │            └ {'capabilities': {'firstMatch': [{}], 'alwaysMatch': {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: ...
+               │    │       │       └ 'newSession'
+               │    │       └ <class 'selenium.webdriver.remote.command.Command'>
+               │    └ <function WebDriver.execute at 0x0000022AD43B3920>
+               └ <undetected_chromedriver.Chrome (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 458, in execute
+    self.error_handler.check_response(response)
+    │    │             │              └ {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created: cannot connect to chrome at...
+    │    │             └ <function ErrorHandler.check_response at 0x0000022AD4246F20>
+    │    └ <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x0000022AD5CC5640>
+    └ <undetected_chromedriver.Chrome (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 233, in check_response
+    raise exception_class(message, screen, stacktrace)
+          │               │        │       └ ['Symbols not available. Dumping unresolved backtrace:', '\t0x1010d23', '\t0x1010d64', '\t0xdfe52b', '\t0xdf1e56', '\t0xe397b...
+          │               │        └ None
+          │               └ 'session not created: cannot connect to chrome at 127.0.0.1:52398\nfrom chrome not reachable'
+          └ <class 'selenium.common.exceptions.SessionNotCreatedException'>
+
+selenium.common.exceptions.SessionNotCreatedException: Message: session not created: cannot connect to chrome at 127.0.0.1:52398
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x1010d23
+	0x1010d64
+	0xdfe52b
+	0xdf1e56
+	0xe397b3
+	0xe2fbe5
+	0xe2fa16
+	0xe77826
+	0xe77047
+	0xe6b2e6
+	0xe3d321
+	0xe3e1d4
+	0x1264d64
+	0x126031b
+	0x127cbfa
+	0x102ac28
+	0x1032c2d
+	0x1019028
+	0x10191e9
+	0x1003578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:39:52 | ERROR    | src.agents.browser_agent:execute_flow:721 - Критическая ошибка при запуске браузера: Message: session not created: cannot connect to chrome at 127.0.0.1:52398
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x1010d23
+	0x1010d64
+	0xdfe52b
+	0xdf1e56
+	0xe397b3
+	0xe2fbe5
+	0xe2fa16
+	0xe77826
+	0xe77047
+	0xe6b2e6
+	0xe3d321
+	0xe3e1d4
+	0x1264d64
+	0x126031b
+	0x127cbfa
+	0x102ac28
+	0x1032c2d
+	0x1019028
+	0x10191e9
+	0x1003578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:39:52 | ERROR    | __main__:main:49 - ============================================================
+2025-12-08 23:39:52 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-08 23:39:52 | ERROR    | __main__:main:51 - ============================================================
+2025-12-08 23:50:05 | ERROR    | src.agents.browser_agent:start_browser:243 - Все 3 попытки не удались
+2025-12-08 23:50:05 | ERROR    | src.agents.browser_agent:start_browser:244 - Детали последней ошибки:
+Traceback (most recent call last):
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 65, in <module>
+    success = main()
+              └ <function main at 0x00000209930D3EC0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\main.py", line 42, in main
+    success = agent.execute_flow()
+              │     └ <function BrowserAgent.execute_flow at 0x00000209930D2DE0>
+              └ <src.agents.browser_agent.BrowserAgent object at 0x0000020992C593D0>
+
+  File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 781, in execute_flow
+    self.start_browser()
+    │    └ <function BrowserAgent.start_browser at 0x00000209930D2700>
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000020992C593D0>
+
+> File "D:\Zhenya\Bullshit\WBagentforDasha\src\agents\browser_agent.py", line 145, in start_browser
+    self.driver = uc.Chrome(
+    │    │        │  └ <class 'undetected_chromedriver.Chrome'>
+    │    │        └ <module 'undetected_chromedriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\u...
+    │    └ None
+    └ <src.agents.browser_agent.BrowserAgent object at 0x0000020992C593D0>
+
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\undetected_chromedriver\__init__.py", line 466, in __init__
+    super(Chrome, self).__init__(
+          │       └ <undetected_chromedriver.Chrome (session="None")>
+          └ <class 'undetected_chromedriver.Chrome'>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 47, in __init__
+    super().__init__(
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 71, in __init__
+    super().__init__(command_executor=executor, options=options)
+                                      │                 └ <undetected_chromedriver.options.ChromeOptions object at 0x0000020992F7CB30>
+                                      └ <selenium.webdriver.chromium.remote_connection.ChromiumRemoteConnection object at 0x0000020992E4D3D0>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 263, in __init__
+    self.start_session(capabilities)
+    │    │             └ {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: 'normal'>, 'goog:chromeOptions': {'extensions': [], '...
+    │    └ <function Chrome.start_session at 0x00000209930C7D80>
+    └ <undetected_chromedriver.Chrome (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\undetected_chromedriver\__init__.py", line 724, in start_session
+    super(selenium.webdriver.chrome.webdriver.WebDriver, self).start_session(
+          │        │         │      │         │          └ <undetected_chromedriver.Chrome (session="None")>
+          │        │         │      │         └ <class 'selenium.webdriver.chrome.webdriver.WebDriver'>
+          │        │         │      └ <module 'selenium.webdriver.chrome.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site...
+          │        │         └ <module 'selenium.webdriver.chrome' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\...
+          │        └ <module 'selenium.webdriver' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\seleni...
+          └ <module 'selenium' from 'C:\\Users\\fisher\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\selenium\\__init...
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 366, in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               │    │       │       │            └ {'capabilities': {'firstMatch': [{}], 'alwaysMatch': {'browserName': 'chrome', 'pageLoadStrategy': <PageLoadStrategy.normal: ...
+               │    │       │       └ 'newSession'
+               │    │       └ <class 'selenium.webdriver.remote.command.Command'>
+               │    └ <function WebDriver.execute at 0x0000020992C53920>
+               └ <undetected_chromedriver.Chrome (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 458, in execute
+    self.error_handler.check_response(response)
+    │    │             │              └ {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created: cannot connect to chrome at...
+    │    │             └ <function ErrorHandler.check_response at 0x0000020992AE6F20>
+    │    └ <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x0000020994584E00>
+    └ <undetected_chromedriver.Chrome (session="None")>
+  File "C:\Users\fisher\AppData\Local\Programs\Python\Python312\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 233, in check_response
+    raise exception_class(message, screen, stacktrace)
+          │               │        │       └ ['Symbols not available. Dumping unresolved backtrace:', '\t0x1130d23', '\t0x1130d64', '\t0xf1e52b', '\t0xf11e56', '\t0xf597b...
+          │               │        └ None
+          │               └ 'session not created: cannot connect to chrome at 127.0.0.1:52471\nfrom chrome not reachable'
+          └ <class 'selenium.common.exceptions.SessionNotCreatedException'>
+
+selenium.common.exceptions.SessionNotCreatedException: Message: session not created: cannot connect to chrome at 127.0.0.1:52471
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x1130d23
+	0x1130d64
+	0xf1e52b
+	0xf11e56
+	0xf597b3
+	0xf4fbe5
+	0xf4fa16
+	0xf97826
+	0xf97047
+	0xf8b2e6
+	0xf5d321
+	0xf5e1d4
+	0x1384d64
+	0x138031b
+	0x139cbfa
+	0x114ac28
+	0x1152c2d
+	0x1139028
+	0x11391e9
+	0x1123578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:50:05 | ERROR    | src.agents.browser_agent:execute_flow:783 - Критическая ошибка при запуске браузера: Message: session not created: cannot connect to chrome at 127.0.0.1:52471
+from chrome not reachable; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x1130d23
+	0x1130d64
+	0xf1e52b
+	0xf11e56
+	0xf597b3
+	0xf4fbe5
+	0xf4fa16
+	0xf97826
+	0xf97047
+	0xf8b2e6
+	0xf5d321
+	0xf5e1d4
+	0x1384d64
+	0x138031b
+	0x139cbfa
+	0x114ac28
+	0x1152c2d
+	0x1139028
+	0x11391e9
+	0x1123578
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:50:05 | ERROR    | __main__:main:49 - ============================================================
+2025-12-08 23:50:05 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-08 23:50:05 | ERROR    | __main__:main:51 - ============================================================
+2025-12-08 23:59:17 | ERROR    | src.agents.browser_agent:start_browser:181 - Ошибка запуска: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e96e9
+	0x10e5598
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:59:17 | ERROR    | src.agents.browser_agent:execute_flow:720 - Критическая ошибка при запуске браузера: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x12a4103
+	0x12a4144
+	0x10ae71d
+	0x10e96e9
+	0x10e5598
+	0x10dff2a
+	0x1128943
+	0x11282ba
+	0x111c706
+	0x10eda30
+	0x10eed54
+	0x15157b4
+	0x151098a
+	0x12cc392
+	0x12bc4c8
+	0x12c324d
+	0x12ac478
+	0x12ac63c
+	0x12967ca
+	0x75927ba9
+	0x7730c0cb
+	0x7730c04f
+
+2025-12-08 23:59:17 | ERROR    | __main__:main:49 - ============================================================
+2025-12-08 23:59:17 | ERROR    | __main__:main:50 - ✗ Процесс завершён с ошибками
+2025-12-08 23:59:17 | ERROR    | __main__:main:51 - ============================================================

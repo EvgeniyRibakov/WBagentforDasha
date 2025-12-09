@@ -52,3 +52,5 @@ def setup_logger(logs_dir: Path = Path("logs"), level: str = "INFO"):
     )
     
     return logger
+
+
