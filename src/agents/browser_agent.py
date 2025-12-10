@@ -77,18 +77,10 @@ class BrowserAgent:
         options.binary_location = str(browser_path.absolute())
         logger.info(f"✓ Yandex Browser: {browser_path}")
 
-        # Настройки User Data и профиля
-        # Создаём НОВУЮ папку для автоматизации (обходим JSONDecodeError в существующих профилях)
-        automation_user_data = Path("./yandex_automation_profile")
-        automation_user_data.mkdir(exist_ok=True)
-        
-        options.add_argument(f'--user-data-dir={str(automation_user_data.absolute())}')
-        options.add_argument('--profile-directory=Default')
-        
-        logger.info(f"✓ Используется изолированный профиль для автоматизации")
-        logger.info(f"  Путь: {automation_user_data.absolute()}")
-        logger.warning(f"⚠ При первом запуске потребуется ВРУЧНУЮ авторизоваться на WB")
-        logger.info(f"  После авторизации сессия сохранится для следующих запусков")
+        # БЕЗ профиля - для быстрого тестирования
+        # (авторизация не сохранится, но браузер точно запустится)
+        logger.info("✓ Запуск БЕЗ профиля (сессия не сохранится)")
+        logger.warning("⚠ Потребуется авторизация при каждом запуске")
 
         # Антидетект-опции для обхода защиты Wildberries
         options.add_argument("--disable-blink-features=AutomationControlled")
@@ -105,7 +97,7 @@ class BrowserAgent:
             self.driver = uc.Chrome(
                 options=options,
                 browser_executable_path=str(browser_path),
-                # Автоопределение версии ChromeDriver
+                version_main=140,  # Версия ChromeDriver для Yandex Browser 140
             )
             logger.success("✓ Браузер запущен")
         except Exception as e:
