@@ -78,41 +78,34 @@ class BrowserAgent:
         logger.info(f"✓ Yandex Browser: {browser_path}")
 
         # Настройки User Data и профиля
-        if not self.settings.yandex_user_data_dir:
-            user_data_path = Path(os.path.expandvars("%LOCALAPPDATA%")) / "Yandex" / "YandexBrowser" / "User Data"
-        else:
-            user_data_path = Path(os.path.expandvars(self.settings.yandex_user_data_dir)).expanduser()
-
-        profile_name = self.settings.yandex_profile_name or "Default"
-        profile_path = user_data_path / profile_name
-
-        # Профиль
-        if user_data_path.exists():
-            options.add_argument(f'--user-data-dir={str(user_data_path.absolute())}')
-            options.add_argument(f'--profile-directory={profile_name}')
-            logger.info(f"✓ Профиль: {profile_name}")
-        else:
-            logger.error(f"✗ User Data не найден: {user_data_path}")
-            raise Exception(f"User Data не найден: {user_data_path}")
-
-        # НЕ добавляем prefs через options.add_experimental_option
-        # Это вызывает чтение повреждённого Default/Preferences
-        # Вместо этого настроим через аргументы
+        # Создаём НОВУЮ папку для автоматизации (обходим JSONDecodeError в существующих профилях)
+        automation_user_data = Path("./yandex_automation_profile")
+        automation_user_data.mkdir(exist_ok=True)
         
-        # Базовые опции
+        options.add_argument(f'--user-data-dir={str(automation_user_data.absolute())}')
+        options.add_argument('--profile-directory=Default')
+        
+        logger.info(f"✓ Используется изолированный профиль для автоматизации")
+        logger.info(f"  Путь: {automation_user_data.absolute()}")
+        logger.warning(f"⚠ При первом запуске потребуется ВРУЧНУЮ авторизоваться на WB")
+        logger.info(f"  После авторизации сессия сохранится для следующих запусков")
+
+        # Антидетект-опции для обхода защиты Wildberries
+        options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--start-maximized")
+        options.add_argument("--disable-notifications")
+        
+        # Настройки скачивания (НЕ через prefs - это вызывает JSONDecodeError)
         options.add_argument(f"--download-directory={str(self.downloads_dir.absolute())}")
 
-        # Запуск с отключенной обработкой prefs
+        # Запуск браузера (undetected-chromedriver сам скрывает WebDriver)
         logger.info("Запуск браузера...")
         
         try:
             self.driver = uc.Chrome(
                 options=options,
                 browser_executable_path=str(browser_path),
-                version_main=140,
-                use_subprocess=False,  # КРИТИЧНО: отключает чтение Default/Preferences
-                suppress_welcome=False
+                # Автоопределение версии ChromeDriver
             )
             logger.success("✓ Браузер запущен")
         except Exception as e:
@@ -886,17 +879,70 @@ class BrowserAgent:
             logger.exception("Детали ошибки:")
             return None
 
+    def _detect_current_page_state(self) -> str:
+        """Определяет на какой странице мы сейчас находимся.
+        
+        Returns:
+            'auth_required' - страница авторизации
+            'reports_page' - страница отчётов (готова к работе)
+            'unknown' - неизвестная страница
+        """
+        try:
+            current_url = self.driver.current_url
+            logger.debug(f"Текущий URL: {current_url}")
+            
+            # Проверка 1: Страница авторизации
+            if "seller-auth.wildberries.ru" in current_url:
+                logger.debug("→ Обнаружена страница авторизации")
+                return "auth_required"
+            
+            # Проверка 2: Страница отчётов - ищем характерные элементы
+            try:
+                # Ищем любой из характерных элементов страницы отчётов
+                self.driver.find_element(By.ID, "suppliers-search")
+                logger.debug("→ Обнаружена страница отчётов (поле поиска)")
+                return "reports_page"
+            except:
+                pass
+            
+            try:
+                self.driver.find_element(By.CSS_SELECTOR, 'button.Date-input__icon-button__WnbzIWQzsq')
+                logger.debug("→ Обнаружена страница отчётов (кнопка календаря)")
+                return "reports_page"
+            except:
+                pass
+            
+            try:
+                self.driver.find_element(By.XPATH, "//span[text()='Продажи']")
+                logger.debug("→ Обнаружена страница отчётов (заголовок)")
+                return "reports_page"
+            except:
+                pass
+            
+            # Если ничего не нашли
+            logger.debug("→ Страница не распознана")
+            return "unknown"
+            
+        except Exception as e:
+            logger.error(f"Ошибка при определении состояния страницы: {e}")
+            return "unknown"
+
     def execute_flow(self) -> None:
         """Выполнение основного потока работы для всех кабинетов."""
         try:
             # Запуск браузера
             self.start_browser()
             
-            # Ждём стабилизации браузера
+            # Ждём полной стабилизации браузера (КРИТИЧНО для Yandex Browser)
             logger.info("Ожидание стабилизации браузера...")
+            time.sleep(5)
+            
+            # Открываем about:blank сначала (для инициализации)
+            logger.info("Инициализация браузера...")
+            self.driver.get("about:blank")
             time.sleep(2)
             
-            # Открываем страницу Wildberries
+            # Теперь открываем страницу Wildberries
             logger.info(f"Открытие страницы {self.WILDBERRIES_REPORTS_URL}...")
             self.driver.get(self.WILDBERRIES_REPORTS_URL)
             
@@ -904,82 +950,64 @@ class BrowserAgent:
             logger.info("Ожидание загрузки страницы...")
             time.sleep(self.settings.delay_page_load)
             
-            # Проверяем, что страница загрузилась
-            try:
-                WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
-                    lambda d: d.execute_script("return document.readyState") == "complete"
-                )
-                current_url = self.driver.current_url
-                logger.success(f"✓ Страница загружена: {current_url}")
+            # === УМНЫЙ ЦИКЛ ПРОВЕРКИ СОСТОЯНИЯ ===
+            # Проверяем состояние страницы каждые 30 секунд и выполняем нужные действия
+            logger.info("=" * 60)
+            logger.info("ЗАПУСК УМНОГО МОНИТОРИНГА СОСТОЯНИЯ")
+            logger.info("Скрипт будет проверять состояние страницы каждые 30 секунд")
+            logger.info("=" * 60)
+            
+            max_wait_cycles = 10  # Максимум 10 циклов по 30 секунд = 5 минут ожидания
+            current_cycle = 0
+            authorized = False
+            
+            while not authorized and current_cycle < max_wait_cycles:
+                current_cycle += 1
+                logger.info(f"[Цикл {current_cycle}/{max_wait_cycles}] Проверка состояния страницы...")
                 
-                # Проверяем, что мы на правильной странице
-                if "seller.wildberries.ru" not in current_url:
-                    logger.warning(f"Открылась не та страница: {current_url}")
-                    logger.info("Открываем нужную страницу...")
-                    self.driver.get(self.settings.wildberries_start_url)
-                    time.sleep(self.settings.delay_page_load)
-                else:
-                    # Проверка авторизации
+                # Определяем состояние
+                page_state = self._detect_current_page_state()
+                
+                if page_state == "auth_required":
                     logger.info("=" * 60)
-                    logger.info("Проверка статуса авторизации...")
+                    logger.info("ОБНАРУЖЕНА СТРАНИЦА АВТОРИЗАЦИИ")
+                    logger.info("Запуск процесса авторизации...")
                     logger.info("=" * 60)
-                    
-                    if self._check_authorization_required():
-                        logger.info("=" * 60)
-                        logger.info("ТРЕБУЕТСЯ АВТОРИЗАЦИЯ")
-                        logger.info("Начинаем процесс авторизации...")
-                        logger.info("=" * 60)
-                        self._perform_authorization()
-                    else:
-                        logger.info("=" * 60)
-                        logger.success("✓ АВТОРИЗАЦИЯ УЖЕ ВЫПОЛНЕНА")
-                        logger.info("Пропускаем этап авторизации")
-                        logger.info("=" * 60)
-                    
-                    # Проверка, что мы на странице отчётов
-                    # Проверяем наличие характерных элементов страницы (кнопки календаря или поля поиска)
-                    page_loaded = False
                     try:
-                        # Вариант 1: Есть поле поиска кабинетов (для пользователей с несколькими кабинетами)
-                        WebDriverWait(self.driver, 5).until(
-                            EC.presence_of_element_located((By.ID, "suppliers-search"))
-                        )
-                        logger.success("✓ Страница отчётов загружена (найдено поле поиска кабинетов)")
-                        page_loaded = True
-                    except TimeoutException:
-                        # Вариант 2: Проверяем наличие кнопки календаря (есть у всех)
-                        try:
-                            WebDriverWait(self.driver, 5).until(
-                                EC.presence_of_element_located((By.CSS_SELECTOR, 'button.Date-input__icon-button__WnbzIWQzsq'))
-                            )
-                            logger.success("✓ Страница отчётов загружена (найдена кнопка календаря)")
-                            page_loaded = True
-                        except TimeoutException:
-                            # Вариант 3: Проверяем наличие заголовка "Продажи"
-                            try:
-                                WebDriverWait(self.driver, 5).until(
-                                    EC.presence_of_element_located((By.XPATH, "//span[text()='Продажи']"))
-                                )
-                                logger.success("✓ Страница отчётов загружена (найден заголовок 'Продажи')")
-                                page_loaded = True
-                            except TimeoutException:
-                                pass
+                        self._perform_authorization()
+                        # После авторизации ждём загрузки следующей страницы
+                        time.sleep(5)
+                        # Проверяем, попали ли на страницу отчётов
+                        if self._detect_current_page_state() == "reports_page":
+                            logger.success("✓ АВТОРИЗАЦИЯ УСПЕШНА! Переход на страницу отчётов")
+                            authorized = True
+                            break
+                        else:
+                            logger.warning("⚠ После авторизации не попали на страницу отчётов, продолжаем ждать...")
+                    except Exception as e:
+                        logger.error(f"Ошибка при авторизации: {e}")
+                        logger.info("Продолжаем мониторинг...")
                     
-                    if not page_loaded:
-                        logger.warning("⚠ Не удалось найти характерные элементы страницы отчётов")
-                        logger.warning("Возможно требуется дополнительная авторизация или страница загружается медленно")
-                        # Просто обновляем страницу, не открываем новую
-                        logger.info("Обновление страницы...")
-                        self.driver.refresh()
-                        time.sleep(self.settings.delay_page_load)
-                        
-            except Exception as e:
-                logger.error(f"Ошибка при проверке загрузки страницы: {e}")
-                # Просто обновляем страницу, не открываем новую
-                logger.info("Обновление страницы...")
-                self.driver.refresh()
-                time.sleep(self.settings.delay_page_load)
-
+                elif page_state == "reports_page":
+                    logger.success("=" * 60)
+                    logger.success("✓ ОБНАРУЖЕНА СТРАНИЦА ОТЧЁТОВ")
+                    logger.success("Авторизация не требуется, начинаем работу с кабинетами")
+                    logger.success("=" * 60)
+                    authorized = True
+                    break
+                    
+                else:
+                    logger.warning(f"⚠ Страница не распознана, ожидание 30 секунд...")
+                    logger.info(f"Текущий URL: {self.driver.current_url}")
+                    time.sleep(30)
+            
+            if not authorized:
+                logger.error("✗ НЕ УДАЛОСЬ АВТОРИЗОВАТЬСЯ ИЛИ ПОПАСТЬ НА СТРАНИЦУ ОТЧЁТОВ")
+                logger.error(f"Истекло время ожидания ({max_wait_cycles * 30} секунд)")
+                raise Exception("Не удалось авторизоваться")
+            
+            # === РАБОТА С КАБИНЕТАМИ (запускается только если authorized=True) ===
+            
             # Раскрытие меню выбора кабинетов на главной странице
             logger.info("Раскрытие меню выбора кабинетов на главной странице...")
             try:
@@ -999,6 +1027,22 @@ class BrowserAgent:
             # Обработка каждого кабинета
             for cabinet in self.CABINETS:
                 try:
+                    # Проверка состояния перед обработкой кабинета
+                    logger.info(f"Проверка состояния перед обработкой кабинета {cabinet['name']}...")
+                    page_state = self._detect_current_page_state()
+                    
+                    if page_state == "auth_required":
+                        logger.warning("⚠ Требуется повторная авторизация!")
+                        self._perform_authorization()
+                        time.sleep(5)
+                        # Переход обратно на страницу отчётов
+                        self.driver.get(self.settings.wildberries_start_url)
+                        time.sleep(self.settings.delay_page_load)
+                    elif page_state == "unknown":
+                        logger.warning("⚠ Неизвестная страница, переход на страницу отчётов...")
+                        self.driver.get(self.settings.wildberries_start_url)
+                        time.sleep(self.settings.delay_page_load)
+                    
                     # Обработка кабинета
                     result = self.process_cabinet(cabinet)
 

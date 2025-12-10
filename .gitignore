@@ -37,9 +37,17 @@ wheels/
 !package.json
 !package-lock.json
 
-# Chrome профиль (если используется локально)
+# Chrome/Yandex профили браузера (если используется локально)
 chrome_profile/
+yandex_automation_profile/
 
+# Логи
+logs/
+*.log
 
+# Загрузки
+downloads/
 
-
+# Временные файлы
+*.tmp
+*.temp
