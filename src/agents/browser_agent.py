@@ -99,7 +99,15 @@ class BrowserAgent:
                 browser_executable_path=str(browser_path),
                 version_main=140,  # Версия ChromeDriver для Yandex Browser 140
             )
+            
+            # КРИТИЧНО: Настройка папки скачивания через CDP (работает БЕЗ профиля)
+            self.driver.execute_cdp_cmd("Page.setDownloadBehavior", {
+                "behavior": "allow",
+                "downloadPath": str(self.downloads_dir.absolute())
+            })
+            
             logger.success("✓ Браузер запущен")
+            logger.info(f"✓ Папка скачивания: {self.downloads_dir.absolute()}")
         except Exception as e:
             logger.error(f"Ошибка запуска: {e}")
             raise
