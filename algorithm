@@ -32,11 +32,16 @@ html
 
 После клика появится поле ввода для поиска кабинетов.
 
-Шаг 2.2: Ввод ID кабинета
+Шаг 2.2: Ввод ID кабинета и выбор кабинета
 После раскрытия меню найдите поле ввода:
 html
 <input class="simple-input_Simple-input__field__9sh9N simple-input_Simple-input__field--isWithCustomIcon__OqKZT" id="suppliers-search" name="suppliers-search" placeholder="Поиск по ИНН, наименованию и ID" value="">
 Вставьте в это поле ID текущего кабинета (только один ID)
+Подождите 2 секунды для загрузки результатов поиска
+КРИТИЧНО: Нажмите на найденный кабинет (radio button):
+html
+<input class="checkbox_Checkbox__input__PZxPr" name="supplier" type="radio">
+Это переключит вас в выбранный кабинет
 Шаг 2.3: Настройка периода отчёта
 Нажмите на кнопку календаря:
 html

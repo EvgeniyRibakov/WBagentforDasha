@@ -27,8 +27,8 @@ class BrowserAgent:
 
     # Список кабинетов для обработки
     CABINETS: List[Dict[str, str]] = [
-        # {"name": "MAU", "id": "53607"},  # Уже обработан
-        # {"name": "MAB", "id": "121614"},  # Уже обработан
+        {"name": "MAU", "id": "53607"},
+        {"name": "MAB", "id": "121614"},
         {"name": "MMA", "id": "174711"},
         {"name": "cosmo", "id": "224650"},
         {"name": "dreamlab", "id": "1140223"},
@@ -673,6 +673,40 @@ class BrowserAgent:
                 clear=True
             )
             time.sleep(2)  # Ожидание загрузки результатов поиска
+            
+            # КРИТИЧНО: Нажимаем на найденный кабинет
+            logger.info(f"Клик по найденному кабинету {cabinet_id}")
+            try:
+                # Вариант 1: Пробуем кликнуть на label кабинета
+                try:
+                    cabinet_label = WebDriverWait(self.driver, 5).until(
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, 'label.suppliers-item-new_SuppliersItem__label__j6lv6'))
+                    )
+                    time.sleep(self.settings.delay_before_click)
+                    cabinet_label.click()
+                    time.sleep(self.settings.delay_after_click)
+                    logger.success(f"✓ Кабинет {cabinet_id} выбран (через label)")
+                except:
+                    # Вариант 2: Пробуем кликнуть на checkbox label
+                    try:
+                        checkbox_label = WebDriverWait(self.driver, 5).until(
+                            EC.element_to_be_clickable((By.CSS_SELECTOR, 'label[data-testid="supplier-checkbox-checkbox"]'))
+                        )
+                        time.sleep(self.settings.delay_before_click)
+                        checkbox_label.click()
+                        time.sleep(self.settings.delay_after_click)
+                        logger.success(f"✓ Кабинет {cabinet_id} выбран (через checkbox label)")
+                    except:
+                        # Вариант 3: Последняя попытка - кликаем на сам input
+                        cabinet_input = WebDriverWait(self.driver, 5).until(
+                            EC.element_to_be_clickable((By.CSS_SELECTOR, 'input[data-testid="supplier-checkbox-checkbox-input"]'))
+                        )
+                        time.sleep(self.settings.delay_before_click)
+                        cabinet_input.click()
+                        time.sleep(self.settings.delay_after_click)
+                        logger.success(f"✓ Кабинет {cabinet_id} выбран (через input)")
+            except Exception as e:
+                logger.warning(f"⚠ Не удалось кликнуть на кабинет {cabinet_id}: {e}, продолжаем...")
 
             # Шаг 2.3: Настройка периода отчёта
             logger.info(f"Шаг 2.3: Настройка периода отчёта ({yesterday_str})")
