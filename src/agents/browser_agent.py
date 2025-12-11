@@ -12,7 +12,7 @@ import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 from openpyxl import load_workbook
 from loguru import logger
 
@@ -27,8 +27,8 @@ class BrowserAgent:
 
     # Список кабинетов для обработки
     CABINETS: List[Dict[str, str]] = [
-        {"name": "MAU", "id": "53607"},
-        {"name": "MAB", "id": "121614"},
+        # {"name": "MAU", "id": "53607"},  # Уже обработан
+        # {"name": "MAB", "id": "121614"},  # Уже обработан
         {"name": "MMA", "id": "174711"},
         {"name": "cosmo", "id": "224650"},
         {"name": "dreamlab", "id": "1140223"},
@@ -77,15 +77,25 @@ class BrowserAgent:
         options.binary_location = str(browser_path.absolute())
         logger.info(f"✓ Yandex Browser: {browser_path}")
 
-        # БЕЗ профиля - для быстрого тестирования
-        # (авторизация не сохранится, но браузер точно запустится)
-        logger.info("✓ Запуск БЕЗ профиля (сессия не сохранится)")
-        logger.warning("⚠ Потребуется авторизация при каждом запуске")
+        # Используем изолированный профиль для сохранения авторизации
+        automation_profile = Path("./yandex_automation_profile").resolve()
+        automation_profile.mkdir(parents=True, exist_ok=True)
+        
+        options.add_argument(f'--user-data-dir={str(automation_profile.absolute())}')
+        options.add_argument('--profile-directory=Default')
+        
+        logger.info("✓ Используется профиль для сохранения авторизации")
+        logger.info(f"  Профиль: {automation_profile.absolute()}")
+        logger.info("  ⚠ При первом запуске: авторизуйтесь вручную через manual_auth.py")
+        logger.info("  ✓ При последующих запусках: автоматический вход")
 
         # Антидетект-опции для обхода защиты Wildberries
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--start-maximized")
         options.add_argument("--disable-notifications")
+        
+        # КРИТИЧНО: Стратегия загрузки страницы 'eager' - не ждать полной загрузки
+        options.page_load_strategy = 'eager'
         
         # Настройки скачивания (НЕ через prefs - это вызывает JSONDecodeError)
         options.add_argument(f"--download-directory={str(self.downloads_dir.absolute())}")
@@ -94,13 +104,15 @@ class BrowserAgent:
         logger.info("Запуск браузера...")
         
         try:
+            # Запуск с правильной версией ChromeDriver для Yandex 140
             self.driver = uc.Chrome(
                 options=options,
                 browser_executable_path=str(browser_path),
-                version_main=140,  # Версия ChromeDriver для Yandex Browser 140
+                version_main=140,
+                use_subprocess=False,
             )
             
-            # КРИТИЧНО: Настройка папки скачивания через CDP (работает БЕЗ профиля)
+            # КРИТИЧНО: Настройка папки скачивания через CDP
             self.driver.execute_cdp_cmd("Page.setDownloadBehavior", {
                 "behavior": "allow",
                 "downloadPath": str(self.downloads_dir.absolute())
@@ -566,31 +578,46 @@ class BrowserAgent:
             clear: Очистить поле перед вводом
             scroll: Прокрутить страницу к элементу перед вводом
         """
-        try:
-            time.sleep(self.settings.delay_before_type)
-            element = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
-                EC.presence_of_element_located((by, value))
-            )
+        # Повторные попытки при StaleElementReferenceException
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                time.sleep(self.settings.delay_before_type)
+                
+                # ВСЕГДА ищем элемент заново (защита от stale element)
+                element = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
+                    EC.presence_of_element_located((by, value))
+                )
 
-            if scroll:
-                self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
-                time.sleep(0.5)
+                if scroll:
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
+                    time.sleep(0.5)
 
-            if clear:
-                element.clear()
-                time.sleep(0.3)
+                if clear:
+                    # Используем JavaScript для очистки (надёжнее)
+                    self.driver.execute_script("arguments[0].value = '';", element)
+                    time.sleep(0.3)
 
-            # Посимвольный ввод для имитации человеческого поведения
-            for char in text:
-                element.send_keys(char)
-                time.sleep(self.settings.delay_between_keys)
+                # Посимвольный ввод для имитации человеческого поведения
+                for char in text:
+                    element.send_keys(char)
+                    time.sleep(self.settings.delay_between_keys)
 
-            time.sleep(self.settings.delay_after_type)
-            logger.debug(f"Заполнено поле {by}={value}: {text}")
+                time.sleep(self.settings.delay_after_type)
+                logger.debug(f"Заполнено поле {by}={value}: {text}")
+                return  # Успешно - выходим
 
-        except Exception as e:
-            logger.error(f"Ошибка при заполнении поля {by}={value}: {e}")
-            raise
+            except StaleElementReferenceException as e:
+                if attempt < max_retries - 1:
+                    logger.warning(f"⚠ Элемент устарел, повтор {attempt + 1}/{max_retries}...")
+                    time.sleep(1)
+                    continue
+                else:
+                    logger.error(f"Ошибка при заполнении поля {by}={value}: {e}")
+                    raise
+            except Exception as e:
+                logger.error(f"Ошибка при заполнении поля {by}={value}: {e}")
+                raise
 
     def process_cabinet(self, cabinet: Dict[str, str]) -> Optional[Path]:
         """Обработка одного кабинета.
@@ -628,8 +655,16 @@ class BrowserAgent:
             
             # Шаг 2.2: Ввод ID кабинета
             logger.info(f"Шаг 2.2: Ввод ID кабинета {cabinet_id}")
-            # Небольшая задержка после раскрытия меню
-            time.sleep(1)
+            
+            # КРИТИЧНО: Ждём появления поля поиска после раскрытия меню
+            try:
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "suppliers-search"))
+                )
+                logger.debug("✓ Поле поиска кабинетов появилось")
+                time.sleep(1)  # Дополнительная задержка для стабильности
+            except TimeoutException:
+                logger.warning("⚠ Поле поиска не появилось, пробуем продолжить...")
             
             self.fill_input(
                 By.ID,
@@ -933,16 +968,11 @@ class BrowserAgent:
             # Запуск браузера
             self.start_browser()
             
-            # Ждём полной стабилизации браузера (КРИТИЧНО для Yandex Browser)
+            # Ждём стабилизации браузера
             logger.info("Ожидание стабилизации браузера...")
-            time.sleep(5)
+            time.sleep(3)
             
-            # Открываем about:blank сначала (для инициализации)
-            logger.info("Инициализация браузера...")
-            self.driver.get("about:blank")
-            time.sleep(2)
-            
-            # Теперь открываем страницу Wildberries
+            # Сразу открываем страницу Wildberries
             logger.info(f"Открытие страницы {self.WILDBERRIES_REPORTS_URL}...")
             self.driver.get(self.WILDBERRIES_REPORTS_URL)
             
@@ -1053,9 +1083,26 @@ class BrowserAgent:
 
                     # Возврат на стартовую страницу для следующего кабинета
                     if cabinet != self.CABINETS[-1]:  # Не возвращаемся после последнего кабинета
-                        logger.info("Возврат на стартовую страницу")
+                        logger.info("Возврат на стартовую страницу для следующего кабинета...")
                         self.driver.get(self.settings.wildberries_start_url)
-                        time.sleep(self.settings.delay_between_actions)
+                        
+                        # Ждём полной загрузки страницы
+                        time.sleep(self.settings.delay_page_load)
+                        
+                        # КРИТИЧНО: Заново раскрываем меню для следующего кабинета
+                        logger.info("Раскрытие меню для следующего кабинета...")
+                        try:
+                            profile_button = WebDriverWait(self.driver, 10).until(
+                                EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="desktop-profile-select-button-chips-component"]'))
+                            )
+                            time.sleep(self.settings.delay_before_click)
+                            profile_button.click()
+                            time.sleep(self.settings.delay_after_click)
+                            logger.success("✓ Меню раскрыто для следующего кабинета")
+                        except TimeoutException:
+                            logger.warning("⚠ Кнопка раскрытия меню не найдена")
+                        except Exception as e:
+                            logger.warning(f"⚠ Ошибка при раскрытии меню: {e}")
 
                 except Exception as e:
                     logger.error(f"Критическая ошибка при обработке кабинета {cabinet['name']}: {e}")
