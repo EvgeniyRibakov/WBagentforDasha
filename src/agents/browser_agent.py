@@ -94,9 +94,6 @@ class BrowserAgent:
         options.add_argument("--start-maximized")
         options.add_argument("--disable-notifications")
         
-        # КРИТИЧНО: Стратегия загрузки страницы 'eager' - не ждать полной загрузки
-        options.page_load_strategy = 'eager'
-        
         # Настройки скачивания (НЕ через prefs - это вызывает JSONDecodeError)
         options.add_argument(f"--download-directory={str(self.downloads_dir.absolute())}")
 
@@ -112,14 +109,22 @@ class BrowserAgent:
                 use_subprocess=False,
             )
             
-            # КРИТИЧНО: Настройка папки скачивания через CDP
-            self.driver.execute_cdp_cmd("Page.setDownloadBehavior", {
-                "behavior": "allow",
-                "downloadPath": str(self.downloads_dir.absolute())
-            })
-            
             logger.success("✓ Браузер запущен")
-            logger.info(f"✓ Папка скачивания: {self.downloads_dir.absolute()}")
+            
+            # КРИТИЧНО: Настройка папки скачивания через CDP (обернуто в try-except)
+            try:
+                self.driver.execute_cdp_cmd("Page.setDownloadBehavior", {
+                    "behavior": "allow",
+                    "downloadPath": str(self.downloads_dir.absolute())
+                })
+                logger.info(f"✓ Папка скачивания: {self.downloads_dir.absolute()}")
+            except Exception as cdp_error:
+                logger.warning(f"⚠ Не удалось установить папку скачивания через CDP: {cdp_error}")
+                logger.info("Браузер будет использовать папку скачивания по умолчанию")
+            
+            # КРИТИЧНО: Даём браузеру время на полную инициализацию перед любыми действиями
+            time.sleep(5)
+            
         except Exception as e:
             logger.error(f"Ошибка запуска: {e}")
             raise
@@ -406,9 +411,23 @@ class BrowserAgent:
 
             # Шаг 2: Нажатие кнопки отправки (стрелка)
             logger.info("Нажатие кнопки отправки номера")
-            submit_button = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="submit-phone-button"]'))
-            )
+            # Пробуем найти кнопку по разным селекторам
+            try:
+                submit_button = WebDriverWait(self.driver, 5).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="submit-phone-button"]'))
+                )
+            except TimeoutException:
+                # Если не нашли, пробуем найти по изображению стрелки
+                try:
+                    submit_button = WebDriverWait(self.driver, 5).until(
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, 'img[alt=""][class*="FormPhoneInputBorderless__image"]'))
+                    )
+                except TimeoutException:
+                    # Пробуем найти родительский элемент (кнопку с изображением)
+                    submit_button = WebDriverWait(self.driver, 5).until(
+                        EC.element_to_be_clickable((By.XPATH, '//img[contains(@class, "FormPhoneInputBorderless__image")]/parent::button | //img[contains(@class, "FormPhoneInputBorderless__image")]/ancestor::button'))
+                    )
+            
             time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
             submit_button.click()
             time.sleep(self.settings.delay_after_click)  # Задержка после клика
@@ -418,8 +437,9 @@ class BrowserAgent:
 
             # Шаг 3: Запрос первого кода авторизации
             logger.info("Ожидание поля для ввода кода авторизации")
+            # Ищем поле по селектору из алгоритма
             code_input = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, 'input[type="numeric"]'))
+                EC.presence_of_element_located((By.CSS_SELECTOR, 'div.FormTextInput__input-f6fPmoYx4c input[type="numeric"], input[type="numeric"]'))
             )
 
             # Запрашиваем код у пользователя
@@ -461,7 +481,7 @@ class BrowserAgent:
             # Ищем поле для второго кода (может быть то же самое или новое)
             try:
                 code_input2 = WebDriverWait(self.driver, 5).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, 'input[type="numeric"]'))
+                    EC.presence_of_element_located((By.CSS_SELECTOR, 'div.FormTextInput__input-f6fPmoYx4c input[type="numeric"], input[type="numeric"]'))
                 )
             except TimeoutException:
                 # Если поле не найдено, возможно авторизация завершена
@@ -1006,7 +1026,7 @@ class BrowserAgent:
             logger.info("Ожидание стабилизации браузера...")
             time.sleep(3)
             
-            # Сразу открываем страницу Wildberries
+            # Открываем страницу Wildberries
             logger.info(f"Открытие страницы {self.WILDBERRIES_REPORTS_URL}...")
             self.driver.get(self.WILDBERRIES_REPORTS_URL)
             
