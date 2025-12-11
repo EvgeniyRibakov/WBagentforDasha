@@ -901,36 +901,64 @@ class BrowserAgent:
             return None
 
     def _replace_first_row(self, file_path: Path) -> None:
-        """Замена первой строки в Excel файле.
+        """Удаление первой строки и замена заголовков на жёстко заданные значения.
+
+        Алгоритм:
+        1. Разъединяем объединённые ячейки в первой строке
+        2. Удаляем первую строку (неполные заголовки)
+        3. Заменяем новую первую строку (бывшую вторую) на жёстко заданные заголовки
 
         Args:
             file_path: Путь к файлу
         """
         try:
-            # Загружаем файл с примером первой строки
-            if not self.example_first_stroke_path.exists():
-                logger.warning(f"Файл с примером первой строки не найден: {self.example_first_stroke_path}")
-                return
-
-            example_wb = load_workbook(self.example_first_stroke_path, read_only=True)
-            example_ws = example_wb.active
-            example_first_row = [cell.value for cell in example_ws[1]]
+            # Жёстко заданные заголовки (A-P столбцы)
+            headers = [
+                "Бренд",           # A
+                "Предмет",         # B
+                "Сезон",           # C
+                "Коллекция",       # D
+                "Наименование",    # E
+                "Артикул поставщика",  # F
+                "Номенклатура",    # G
+                "Баркод",          # H
+                "Размер",          # I
+                "Контракт",        # J
+                "Склад",           # K
+                "Заказано шт",     # L
+                "Заказано себестоимость",  # M
+                "Выкупили шт",     # N
+                "Выкупили руб",    # O
+                "Текущий остаток"  # P
+            ]
 
             # Загружаем файл для обработки
             wb = load_workbook(file_path)
             ws = wb.active
 
-            # Удаляем первую строку
+            # КРИТИЧНО: Шаг 1: Разъединяем все объединённые ячейки в первой строке
+            # (WB выгружает файлы с объединёнными ячейками в заголовках)
+            logger.debug("Разъединение объединённых ячеек в первой строке...")
+            merged_ranges = list(ws.merged_cells.ranges)
+            for merged_range in merged_ranges:
+                # Проверяем, относится ли объединение к первой строке
+                if merged_range.min_row == 1 and merged_range.max_row == 1:
+                    logger.debug(f"  Разъединяем: {merged_range}")
+                    ws.unmerge_cells(str(merged_range))
+
+            # Шаг 2: Удаляем первую строку (неполные заголовки)
+            logger.debug("Удаление первой строки...")
             ws.delete_rows(1)
 
-            # Вставляем новую первую строку
-            ws.insert_rows(1)
-            for col_idx, value in enumerate(example_first_row, start=1):
-                ws.cell(row=1, column=col_idx, value=value)
+            # Шаг 3: Заменяем новую первую строку (бывшую вторую) на жёстко заданные заголовки
+            logger.debug("Замена заголовков на жёстко заданные значения...")
+            for col_idx, header in enumerate(headers, start=1):
+                ws.cell(row=1, column=col_idx).value = header
 
             # Сохраняем изменения
             wb.save(file_path)
-            logger.success("✓ Первая строка заменена")
+            wb.close()
+            logger.success("✓ Первая строка удалена, заголовки заменены на жёстко заданные значения")
 
         except Exception as e:
             logger.error(f"Ошибка при замене первой строки: {e}")
