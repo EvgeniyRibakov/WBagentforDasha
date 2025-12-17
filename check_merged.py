@@ -13,3 +13,10 @@ for i in range(1, 6):
     cell = ws.cell(1, i)
     print(f"  {chr(64+i)}: value={cell.value}, merged={cell.coordinate in ws.merged_cells}")
 
+
+
+
+
+
+
+

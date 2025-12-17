@@ -16,3 +16,10 @@ for i in range(1, 6):
     print(f'{ws.cell(2, i).value}', end=', ')
 print()
 
+
+
+
+
+
+
+

@@ -4,7 +4,7 @@ import re
 import time
 import shutil
 import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from pathlib import Path
 from typing import Optional, Dict, List
 
@@ -639,63 +639,201 @@ class BrowserAgent:
                 logger.error(f"Ошибка при заполнении поля {by}={value}: {e}")
                 raise
 
-    def process_cabinet(self, cabinet: Dict[str, str]) -> Optional[Path]:
+    def delete_all_reports(self) -> None:
+        """Удаляет все отчёты на странице перед скачиванием.
+        
+        Находит все кнопки удаления (с иконкой корзины) и нажимает на них.
+        """
+        try:
+            logger.info("   Поиск кнопок удаления отчётов...")
+            
+            # Ждём загрузки страницы
+            time.sleep(2)
+            
+            # Ищем все кнопки удаления по селектору из HTML
+            # Кнопка содержит SVG с path для корзины (более стабильный способ поиска)
+            delete_buttons = []
+            
+            # Вариант 1: Ищем по SVG path напрямую (самый надёжный способ)
+            try:
+                # Ищем все SVG с path для корзины (path содержит характерную последовательность для иконки корзины)
+                # Из HTML: path с d="M7 0H13C14.1046 0 15 0.89543 15 2V3H18C19.1046 3 20 3.89543 20 5V7..."
+                svg_paths = self.driver.find_elements(
+                    By.XPATH,
+                    '//svg//path[contains(@d, "M7 0H13") or contains(@d, "M17 0H13")]'
+                )
+                for svg_path in svg_paths:
+                    try:
+                        # Находим родительскую кнопку
+                        button = svg_path.find_element(By.XPATH, './ancestor::button[1]')
+                        if button not in delete_buttons:
+                            delete_buttons.append(button)
+                    except:
+                        continue
+                if delete_buttons:
+                    logger.debug(f"Найдено кнопок удаления через SVG path: {len(delete_buttons)}")
+            except Exception as e:
+                logger.warning(f"Не удалось найти кнопки удаления по SVG path: {e}")
+            
+            # Вариант 2: Ищем по классу кнопки (резервный способ)
+            if not delete_buttons:
+                try:
+                    buttons = self.driver.find_elements(
+                        By.CSS_SELECTOR,
+                        'button[type="button"][class*="Button-link"]'
+                    )
+                    # Проверяем, что кнопка содержит иконку корзины
+                    for button in buttons:
+                        try:
+                            svg = button.find_element(By.TAG_NAME, "svg")
+                            path = svg.find_element(By.TAG_NAME, "path")
+                            path_d = path.get_attribute("d")
+                            # Проверяем наличие характерного path для корзины
+                            if path_d and ("M7 0H13" in path_d or "M17 0H13" in path_d or "d=\"M7 0H13" in path_d):
+                                if button not in delete_buttons:
+                                    delete_buttons.append(button)
+                        except:
+                            continue
+                    if delete_buttons:
+                        logger.debug(f"Найдено кнопок удаления через класс: {len(delete_buttons)}")
+                except Exception as e:
+                    logger.warning(f"Не удалось найти кнопки удаления по классу: {e}")
+            
+            # Вариант 3: Ищем все кнопки с иконкой корзины по aria-label или title
+            if not delete_buttons:
+                try:
+                    # Ищем кнопки, которые могут иметь подсказку об удалении
+                    buttons = self.driver.find_elements(
+                        By.XPATH,
+                        '//button[contains(@aria-label, "удал") or contains(@title, "удал") or contains(@aria-label, "delete") or contains(@title, "delete")]'
+                    )
+                    for button in buttons:
+                        try:
+                            # Проверяем, что это действительно кнопка удаления (содержит SVG корзины)
+                            svg = button.find_element(By.TAG_NAME, "svg")
+                            if button not in delete_buttons:
+                                delete_buttons.append(button)
+                        except:
+                            continue
+                    if delete_buttons:
+                        logger.debug(f"Найдено кнопок удаления через aria-label: {len(delete_buttons)}")
+                except Exception as e:
+                    logger.warning(f"Не удалось найти кнопки удаления по aria-label: {e}")
+            
+            if not delete_buttons:
+                logger.info("   ✓ Кнопки удаления не найдены (отчётов нет на странице)")
+                return
+            
+            logger.info(f"   Найдено кнопок удаления: {len(delete_buttons)}")
+            logger.info("   Начинаем удаление отчётов...")
+            
+            # Нажимаем на каждую кнопку удаления
+            deleted_count = 0
+            for i, button in enumerate(delete_buttons, 1):
+                try:
+                    logger.info(f"     Удаляем отчёт {i}/{len(delete_buttons)}...")
+                    # Прокручиваем к кнопке
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", button)
+                    time.sleep(0.5)
+                    
+                    # Нажимаем на кнопку
+                    time.sleep(self.settings.delay_before_click)
+                    button.click()
+                    time.sleep(self.settings.delay_after_click)
+                    deleted_count += 1
+                    logger.info(f"     ✓ Отчёт {i} удалён")
+                    
+                    # Небольшая задержка между удалениями
+                    time.sleep(1)
+                except Exception as e:
+                    logger.warning(f"     ⚠ Не удалось удалить отчёт {i}: {e}")
+                    continue
+            
+            logger.success(f"   ✅ Удалено отчётов: {deleted_count}/{len(delete_buttons)}")
+            
+            # Ждём обновления страницы после удаления
+            logger.info("   Ожидание обновления страницы...")
+            time.sleep(2)
+            
+        except Exception as e:
+            logger.error(f"Ошибка при удалении отчётов: {e}")
+            logger.exception("Детали ошибки:")
+            # Не прерываем выполнение, продолжаем работу
+
+    def process_cabinet(self, cabinet: Dict[str, str], target_date: Optional[date] = None) -> Optional[Path]:
         """Обработка одного кабинета.
 
         Args:
             cabinet: Словарь с информацией о кабинете (name, id)
+            target_date: Дата для скачивания отчёта (если None, используется вчерашний день)
 
         Returns:
             Путь к обработанному файлу или None в случае ошибки
         """
         cabinet_name = cabinet["name"]
         cabinet_id = cabinet["id"]
-        today = datetime.now()
-        yesterday = today - timedelta(days=1)
-        date_str = today.strftime("%d.%m.%Y")
-        yesterday_str = yesterday.strftime("%d.%m.%Y")
+        
+        # Определяем дату для скачивания
+        if target_date:
+            report_date = target_date
+        else:
+            report_date = (datetime.now() - timedelta(days=1)).date()
+        
+        date_str = report_date.strftime("%d.%m.%Y")
 
-        logger.info(f"Начало обработки кабинета: {cabinet_name} (ID: {cabinet_id})")
+        logger.info("=" * 70)
+        logger.info(f"📋 НАЧАЛО ОБРАБОТКИ КАБИНЕТА: {cabinet_name.upper()}")
+        logger.info(f"   ID кабинета: {cabinet_id}")
+        logger.info(f"   Дата отчёта: {date_str}")
+        logger.info("=" * 70)
 
         try:
             # Шаг 2.1: Раскрытие меню выбора кабинетов
-            logger.info("Шаг 2.1: Раскрытие меню выбора кабинетов")
+            logger.info("")
+            logger.info("🔹 ШАГ 1: Раскрытие меню выбора кабинетов")
+            logger.info("   Ищем кнопку выбора кабинетов...")
             try:
                 # Ищем кнопку с именем пользователя/кабинета (содержит стрелку вниз)
                 # Используем data-testid для надёжности
                 dropdown_button = WebDriverWait(self.driver, 5).until(
                     EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="desktop-profile-select-button-chips-component"]'))
                 )
+                logger.info("   ✓ Кнопка найдена, кликаем...")
                 time.sleep(self.settings.delay_before_click)
                 dropdown_button.click()
                 time.sleep(self.settings.delay_after_click)
-                logger.success("✓ Меню выбора кабинетов раскрыто")
+                logger.success("   ✅ Меню выбора кабинетов раскрыто")
             except TimeoutException:
-                logger.warning("⚠ Кнопка раскрытия меню не найдена, возможно меню уже раскрыто или у пользователя один кабинет")
+                logger.warning("   ⚠ Кнопка раскрытия меню не найдена, возможно меню уже раскрыто")
             
             # Шаг 2.2: Ввод ID кабинета
-            logger.info(f"Шаг 2.2: Ввод ID кабинета {cabinet_id}")
+            logger.info("")
+            logger.info("🔹 ШАГ 2: Поиск и выбор кабинета")
+            logger.info(f"   Ищем кабинет с ID: {cabinet_id}")
             
             # КРИТИЧНО: Ждём появления поля поиска после раскрытия меню
             try:
+                logger.info("   Ожидание появления поля поиска...")
                 WebDriverWait(self.driver, 10).until(
                     EC.presence_of_element_located((By.ID, "suppliers-search"))
                 )
-                logger.debug("✓ Поле поиска кабинетов появилось")
+                logger.info("   ✓ Поле поиска появилось")
                 time.sleep(1)  # Дополнительная задержка для стабильности
             except TimeoutException:
-                logger.warning("⚠ Поле поиска не появилось, пробуем продолжить...")
+                logger.warning("   ⚠ Поле поиска не появилось, пробуем продолжить...")
             
+            logger.info(f"   Вводим ID кабинета: {cabinet_id}")
             self.fill_input(
                 By.ID,
                 "suppliers-search",
                 cabinet_id,
                 clear=True
             )
+            logger.info("   ✓ ID введён, ждём результатов поиска...")
             time.sleep(2)  # Ожидание загрузки результатов поиска
             
             # КРИТИЧНО: Нажимаем на найденный кабинет
-            logger.info(f"Клик по найденному кабинету {cabinet_id}")
+            logger.info(f"   Кликаем на найденный кабинет {cabinet_id}...")
             try:
                 # Вариант 1: Пробуем кликнуть на label кабинета
                 try:
@@ -705,7 +843,7 @@ class BrowserAgent:
                     time.sleep(self.settings.delay_before_click)
                     cabinet_label.click()
                     time.sleep(self.settings.delay_after_click)
-                    logger.success(f"✓ Кабинет {cabinet_id} выбран (через label)")
+                    logger.success(f"   ✅ Кабинет {cabinet_id} выбран (через label)")
                 except:
                     # Вариант 2: Пробуем кликнуть на checkbox label
                     try:
@@ -715,7 +853,7 @@ class BrowserAgent:
                         time.sleep(self.settings.delay_before_click)
                         checkbox_label.click()
                         time.sleep(self.settings.delay_after_click)
-                        logger.success(f"✓ Кабинет {cabinet_id} выбран (через checkbox label)")
+                        logger.success(f"   ✅ Кабинет {cabinet_id} выбран (через checkbox label)")
                     except:
                         # Вариант 3: Последняя попытка - кликаем на сам input
                         cabinet_input = WebDriverWait(self.driver, 5).until(
@@ -724,15 +862,26 @@ class BrowserAgent:
                         time.sleep(self.settings.delay_before_click)
                         cabinet_input.click()
                         time.sleep(self.settings.delay_after_click)
-                        logger.success(f"✓ Кабинет {cabinet_id} выбран (через input)")
+                        logger.success(f"   ✅ Кабинет {cabinet_id} выбран (через input)")
             except Exception as e:
-                logger.warning(f"⚠ Не удалось кликнуть на кабинет {cabinet_id}: {e}, продолжаем...")
+                logger.warning(f"   ⚠ Не удалось кликнуть на кабинет {cabinet_id}: {e}, продолжаем...")
 
+            # Шаг 2.2.5: Удаление всех отчётов перед скачиванием
+            logger.info("")
+            logger.info("🔹 ШАГ 3: Удаление всех существующих отчётов")
+            logger.info("   Ищем и удаляем все отчёты в кабинете...")
+            self.delete_all_reports()
+            
             # Шаг 2.3: Настройка периода отчёта
-            logger.info(f"Шаг 2.3: Настройка периода отчёта ({yesterday_str})")
+            logger.info("")
+            logger.info("🔹 ШАГ 4: Настройка периода отчёта")
+            logger.info(f"   Устанавливаем дату: {date_str}")
+            logger.info("   Ищем кнопку календаря...")
             self.click_element(By.CSS_SELECTOR, "button.Date-input__icon-button__WnbzIWQzsq")
+            logger.info("   ✓ Кнопка календаря нажата")
 
             # Ожидание появления календаря и полей ввода даты
+            logger.info("   Ожидание появления полей ввода даты...")
             try:
                 WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
                     EC.presence_of_element_located((By.ID, "startDate"))
@@ -740,13 +889,15 @@ class BrowserAgent:
                 WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
                     EC.presence_of_element_located((By.ID, "endDate"))
                 )
+                logger.info("   ✓ Поля ввода даты найдены")
             except TimeoutException:
-                logger.error("Поля ввода даты не найдены")
+                logger.error("   ❌ Поля ввода даты не найдены")
                 raise
 
             time.sleep(0.5)
 
             # Заполнение поля начала периода
+            logger.info(f"   Заполняем поле 'Начало периода': {date_str}")
             start_date_input = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
                 EC.element_to_be_clickable((By.ID, "startDate"))
             )
@@ -755,11 +906,13 @@ class BrowserAgent:
             time.sleep(self.settings.delay_after_click)  # Задержка после клика
             start_date_input.clear()
             time.sleep(0.5)
-            for char in yesterday_str:
+            for char in date_str:
                 start_date_input.send_keys(char)
                 time.sleep(self.settings.delay_between_keys)
+            logger.info("   ✓ Поле 'Начало периода' заполнено")
 
             # Заполнение поля окончания периода
+            logger.info(f"   Заполняем поле 'Конец периода': {date_str}")
             end_date_input = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
                 EC.element_to_be_clickable((By.ID, "endDate"))
             )
@@ -768,11 +921,13 @@ class BrowserAgent:
             time.sleep(self.settings.delay_after_click)  # Задержка после клика
             end_date_input.clear()
             time.sleep(0.5)
-            for char in yesterday_str:
+            for char in date_str:
                 end_date_input.send_keys(char)
                 time.sleep(self.settings.delay_between_keys)
+            logger.info("   ✓ Поле 'Конец периода' заполнено")
 
             # Нажатие кнопки "Сохранить"
+            logger.info("   Ищем кнопку 'Сохранить'...")
             # Используем более точный селектор с текстом "Сохранить"
             save_button = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
                 EC.element_to_be_clickable((By.XPATH, "//button[@type='submit' and .//span[text()='Сохранить']]"))
@@ -780,48 +935,86 @@ class BrowserAgent:
             time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
             save_button.click()
             time.sleep(self.settings.delay_after_click)  # Задержка после клика
-            logger.success("✓ Период сохранён")
+            logger.success("   ✅ Период сохранён")
 
             # Шаг 2.4: Выгрузка отчёта
-            logger.info("Шаг 2.4: Выгрузка отчёта в Excel")
+            logger.info("")
+            logger.info("🔹 ШАГ 5: Выгрузка отчёта в Excel")
+            logger.info("   Ожидание после сохранения периода...")
             time.sleep(3)  # Ожидание после сохранения периода
 
+            # Очищаем папку downloads перед скачиванием (чтобы найти только новый файл)
+            logger.info("   Очищаем папку downloads от старых файлов...")
+            self._clear_downloads_folder()
+            
             # Поиск кнопки "Выгрузить в Excel"
+            logger.info("   Ищем кнопку 'Выгрузить в Excel'...")
             download_button = WebDriverWait(self.driver, self.settings.element_wait_timeout).until(
                 EC.element_to_be_clickable((By.XPATH, "//button[.//span[text()='Выгрузить в Excel']]"))
             )
+            logger.info("   ✓ Кнопка найдена, нажимаем...")
             time.sleep(self.settings.delay_before_click)  # Задержка перед кликом
             download_button.click()
             time.sleep(self.settings.delay_after_click)  # Задержка после клика
-            logger.success("✓ Запрос на выгрузку отправлен")
+            logger.success("   ✅ Запрос на выгрузку отправлен")
 
             # Ожидание скачивания файла
+            logger.info("   Ожидание скачивания файла...")
             downloaded_file = self._wait_for_downloaded_file()
             if not downloaded_file:
-                logger.error("Файл не был скачан")
+                logger.error("   ❌ Файл не был скачан")
                 return None
+            logger.info(f"   ✓ Файл скачан: {downloaded_file.name}")
 
             # Шаг 2.4: Обработка скачанного файла
-            logger.info("Шаг 2.4: Обработка скачанного файла")
+            logger.info("")
+            logger.info("🔹 ШАГ 6: Обработка скачанного файла")
+            logger.info(f"   Переименовываем файл в: {cabinet_name} {date_str}.xlsx")
             processed_file = self._process_downloaded_file(downloaded_file, cabinet_name, date_str)
             if not processed_file:
-                logger.error("Ошибка при обработке файла")
+                logger.error("   ❌ Ошибка при обработке файла")
                 return None
+            logger.success(f"   ✅ Файл обработан: {processed_file.name}")
 
             # Шаг 2.5: Создание резервной копии
-            logger.info("Шаг 2.5: Создание резервной копии")
+            logger.info("")
+            logger.info("🔹 ШАГ 7: Создание резервной копии")
+            logger.info(f"   Сохраняем копию в папку data/{date_str}/...")
             backup_file = self._create_backup(processed_file, cabinet_name, date_str)
             if not backup_file:
-                logger.error("Ошибка при создании резервной копии")
+                logger.error("   ❌ Ошибка при создании резервной копии")
                 return None
+            logger.success(f"   ✅ Резервная копия создана: {backup_file.name}")
 
-            logger.success(f"✓ Кабинет {cabinet_name} успешно обработан")
+            logger.info("")
+            logger.success("=" * 70)
+            logger.success(f"✅ КАБИНЕТ {cabinet_name.upper()} УСПЕШНО ОБРАБОТАН")
+            logger.success(f"   Файл: {processed_file.name}")
+            logger.success("=" * 70)
             return processed_file
 
         except Exception as e:
             logger.error(f"Ошибка при обработке кабинета {cabinet_name}: {e}")
             logger.exception("Детали ошибки:")
             return None
+
+    def _clear_downloads_folder(self) -> None:
+        """Очищает папку downloads от старых файлов перед скачиванием."""
+        try:
+            files_before = list(self.downloads_dir.glob("*.xlsx")) + list(self.downloads_dir.glob("*.xls"))
+            if files_before:
+                logger.info(f"   Найдено старых файлов: {len(files_before)}")
+                for old_file in files_before:
+                    try:
+                        old_file.unlink()
+                        logger.debug(f"   Удалён старый файл: {old_file.name}")
+                    except Exception as e:
+                        logger.warning(f"   Не удалось удалить {old_file.name}: {e}")
+                logger.info("   ✓ Папка downloads очищена")
+            else:
+                logger.info("   ✓ Папка downloads уже пуста")
+        except Exception as e:
+            logger.warning(f"   ⚠ Ошибка при очистке папки downloads: {e}")
 
     def _wait_for_downloaded_file(self, timeout: int = 60) -> Optional[Path]:
         """Ожидание скачивания файла.
@@ -833,7 +1026,15 @@ class BrowserAgent:
             Путь к скачанному файлу или None
         """
         start_time = time.time()
+        logger.info(f"   Ожидание до {timeout} секунд...")
+        check_count = 0
+        
         while time.time() - start_time < timeout:
+            check_count += 1
+            if check_count % 5 == 0:  # Каждые 5 секунд показываем прогресс
+                elapsed = int(time.time() - start_time)
+                logger.info(f"   Ожидание... ({elapsed}/{timeout} сек)")
+            
             # Ищем файлы .xlsx и .xls в папке downloads
             for file_path in self.downloads_dir.glob("*.xlsx"):
                 # Проверяем, что файл не заблокирован (завершено скачивание)
@@ -841,7 +1042,7 @@ class BrowserAgent:
                     if file_path.stat().st_size > 0:
                         # Проверяем, что файл не был изменён недавно (скачивание завершено)
                         if time.time() - file_path.stat().st_mtime > 2:
-                            logger.success(f"✓ Файл скачан: {file_path.name}")
+                            logger.info(f"   ✓ Найден новый файл: {file_path.name} ({file_path.stat().st_size} байт)")
                             return file_path
                 except Exception:
                     pass
@@ -850,14 +1051,14 @@ class BrowserAgent:
                 try:
                     if file_path.stat().st_size > 0:
                         if time.time() - file_path.stat().st_mtime > 2:
-                            logger.success(f"✓ Файл скачан: {file_path.name}")
+                            logger.info(f"   ✓ Найден новый файл: {file_path.name} ({file_path.stat().st_size} байт)")
                             return file_path
                 except Exception:
                     pass
 
             time.sleep(1)
 
-        logger.error("Таймаут ожидания скачивания файла")
+        logger.error(f"   ❌ Таймаут ожидания скачивания файла ({timeout} сек)")
         return None
 
     def _process_downloaded_file(
@@ -867,36 +1068,42 @@ class BrowserAgent:
 
         Args:
             file_path: Путь к скачанному файлу
-            cabinet_name: Название кабинета
+            cabinet_name: Название кабинета (используется для имени файла)
             date_str: Дата в формате DD.MM.YYYY
 
         Returns:
             Путь к обработанному файлу или None
         """
         try:
-            # Новое имя файла
+            # Новое имя файла - используем имя кабинета как есть
             new_name = f"{cabinet_name} {date_str}.xlsx"
             new_path = self.downloads_dir / new_name
 
+            logger.info(f"   Исходный файл: {file_path.name}")
+            logger.info(f"   Новое имя: {new_name}")
+
             # Если файл с таким именем уже существует, удаляем его
             if new_path.exists() and file_path != new_path:
-                logger.warning(f"Файл {new_name} уже существует, будет перезаписан")
+                logger.warning(f"   ⚠ Файл {new_name} уже существует, будет перезаписан")
                 new_path.unlink()
 
             # Переименование файла
             if file_path != new_path:
                 file_path.rename(new_path)
-                logger.info(f"Файл переименован: {new_name}")
+                logger.info(f"   ✓ Файл переименован: {file_path.name} → {new_name}")
 
             # Замена первой строки
-            logger.info("Замена первой строки в файле")
+            logger.info("   Обрабатываем заголовки файла...")
+            logger.info("     - Разъединение объединённых ячеек...")
+            logger.info("     - Удаление первой строки...")
+            logger.info("     - Вставка правильных заголовков...")
             self._replace_first_row(new_path)
+            logger.info("   ✓ Заголовки обработаны")
 
-            logger.success(f"✓ Файл обработан: {new_name}")
             return new_path
 
         except Exception as e:
-            logger.error(f"Ошибка при обработке файла: {e}")
+            logger.error(f"   ❌ Ошибка при обработке файла: {e}")
             logger.exception("Детали ошибки:")
             return None
 
@@ -1044,8 +1251,12 @@ class BrowserAgent:
             logger.error(f"Ошибка при определении состояния страницы: {e}")
             return "unknown"
 
-    def execute_flow(self) -> None:
-        """Выполнение основного потока работы для всех кабинетов."""
+    def execute_flow(self, target_date: Optional[date] = None) -> None:
+        """Выполнение основного потока работы для всех кабинетов.
+        
+        Args:
+            target_date: Дата для скачивания отчётов (если None, используется вчерашний день)
+        """
         try:
             # Запуск браузера
             self.start_browser()
@@ -1137,10 +1348,22 @@ class BrowserAgent:
                 logger.warning(f"⚠ Ошибка при раскрытии меню: {e}, продолжаем работу...")
 
             # Обработка каждого кабинета
-            for cabinet in self.CABINETS:
+            total_cabinets = len(self.CABINETS)
+            logger.info("")
+            logger.info("=" * 70)
+            logger.info(f"📊 НАЧИНАЕМ ОБРАБОТКУ {total_cabinets} КАБИНЕТОВ")
+            logger.info("=" * 70)
+            
+            for idx, cabinet in enumerate(self.CABINETS, 1):
                 try:
+                    logger.info("")
+                    logger.info("")
+                    logger.info("╔" + "═" * 68 + "╗")
+                    logger.info(f"║  КАБИНЕТ {idx}/{total_cabinets}: {cabinet['name'].upper()} (ID: {cabinet['id']})")
+                    logger.info("╚" + "═" * 68 + "╝")
+                    
                     # Проверка состояния перед обработкой кабинета
-                    logger.info(f"Проверка состояния перед обработкой кабинета {cabinet['name']}...")
+                    logger.info("Проверка состояния страницы...")
                     page_state = self._detect_current_page_state()
                     
                     if page_state == "auth_required":
@@ -1148,31 +1371,38 @@ class BrowserAgent:
                         self._perform_authorization()
                         time.sleep(5)
                         # Переход обратно на страницу отчётов
+                        logger.info("Переход на страницу отчётов...")
                         self.driver.get(self.settings.wildberries_start_url)
                         time.sleep(self.settings.delay_page_load)
                     elif page_state == "unknown":
                         logger.warning("⚠ Неизвестная страница, переход на страницу отчётов...")
                         self.driver.get(self.settings.wildberries_start_url)
                         time.sleep(self.settings.delay_page_load)
+                    else:
+                        logger.info("✓ Страница отчётов доступна")
                     
                     # Обработка кабинета
-                    result = self.process_cabinet(cabinet)
+                    result = self.process_cabinet(cabinet, target_date=target_date)
 
                     if result:
-                        logger.success(f"✓ Кабинет {cabinet['name']} обработан успешно")
+                        logger.success(f"✅ Кабинет {cabinet['name']} обработан успешно")
+                        logger.info(f"   Файл сохранён: {result.name}")
                     else:
-                        logger.error(f"✗ Ошибка при обработке кабинета {cabinet['name']}")
+                        logger.error(f"❌ Ошибка при обработке кабинета {cabinet['name']}")
 
                     # Возврат на стартовую страницу для следующего кабинета
                     if cabinet != self.CABINETS[-1]:  # Не возвращаемся после последнего кабинета
-                        logger.info("Возврат на стартовую страницу для следующего кабинета...")
+                        logger.info("")
+                        logger.info("⏭ Переход к следующему кабинету...")
+                        logger.info("   Возврат на стартовую страницу...")
                         self.driver.get(self.settings.wildberries_start_url)
                         
                         # Ждём полной загрузки страницы
+                        logger.info("   Ожидание загрузки страницы...")
                         time.sleep(self.settings.delay_page_load)
                         
                         # КРИТИЧНО: Заново раскрываем меню для следующего кабинета
-                        logger.info("Раскрытие меню для следующего кабинета...")
+                        logger.info("   Раскрытие меню для следующего кабинета...")
                         try:
                             profile_button = WebDriverWait(self.driver, 10).until(
                                 EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="desktop-profile-select-button-chips-component"]'))
@@ -1180,18 +1410,21 @@ class BrowserAgent:
                             time.sleep(self.settings.delay_before_click)
                             profile_button.click()
                             time.sleep(self.settings.delay_after_click)
-                            logger.success("✓ Меню раскрыто для следующего кабинета")
+                            logger.info("   ✓ Меню раскрыто")
                         except TimeoutException:
-                            logger.warning("⚠ Кнопка раскрытия меню не найдена")
+                            logger.warning("   ⚠ Кнопка раскрытия меню не найдена")
                         except Exception as e:
-                            logger.warning(f"⚠ Ошибка при раскрытии меню: {e}")
+                            logger.warning(f"   ⚠ Ошибка при раскрытии меню: {e}")
 
                 except Exception as e:
-                    logger.error(f"Критическая ошибка при обработке кабинета {cabinet['name']}: {e}")
+                    logger.error(f"❌ Критическая ошибка при обработке кабинета {cabinet['name']}: {e}")
                     logger.exception("Детали ошибки:")
                     continue
 
-            logger.success("✓ Все кабинеты обработаны")
+            logger.info("")
+            logger.info("=" * 70)
+            logger.success("✅ ВСЕ КАБИНЕТЫ ОБРАБОТАНЫ")
+            logger.info("=" * 70)
 
         except Exception as e:
             logger.error(f"Критическая ошибка в процессе выполнения: {e}")
